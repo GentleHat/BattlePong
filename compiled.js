@@ -1,4 +1,137 @@
+var balls = [];
 
+function Ball(x,y,xv,yv) {
+	this.x = x;
+	this.y = y;
+	this.xv = xv;
+	this.yv = yv;
+	this.width = 20;
+	this.height = 20;
+}
+
+Ball.prototype.draw = function() {
+	ctx.fillStyle = "#F0F";
+	ctx.fillRect(this.x,this.y,this.width,this.height);
+};
+
+Ball.prototype.update = function() {
+	this.move();
+};
+
+Ball.prototype.move = function() {
+	//Collision with walls
+	if (this.x + this.xv < 0 || this.x + this.width + this.xv > 800) this.xv *= -1;
+	if (this.y + this.yv < 0 || this.y + this.height + this.yv > 600) this.yv *= -1;
+	//Collision with player
+	if (this.x + this.width > player.x && this.x < player.x + player.width) {
+		if (this.y + this.height > player.y) {
+			this.yv *= -1;
+			this.y -= 3;
+		}
+	}
+	//Collision with enemy
+	if (this.x + this.width > enemy.x && this.x < enemy.x + enemy.width) {
+		if (this.y < enemy.y + enemy.height) {
+			this.yv *= -1;
+			this.y += 3;
+		}
+	}
+	//Collide with other balls
+	for (var i=0;i<balls.length;i++) {
+		if (balls[i] !== this) {
+						
+		}
+	}
+	this.x += this.xv;
+	this.y += this.yv;
+};
+
+Ball.prototype.collidex = function() {
+	this.yv = this.xv * -1;
+};
+Ball.prototype.collidey = function() {
+	this.yv = this.yv * -1;
+};
+
+function drawBalls() {
+	for (var i=0;i<balls.length;i++) {
+		balls[i].draw();
+	}
+}
+
+function updateBalls() {
+	for (var i=0;i<balls.length;i++) {
+		balls[i].update();
+	}
+}var enemy = new Enemy(2);
+function Enemy(difficulty) {
+	this.score = 0;
+	this.difficulty = difficulty;
+	this.x = 400;
+	this.y = 0;
+	this.powerup = 0;
+	this.lives = 3;
+	this.width = 150;
+	this.height = 30;
+	this.destination = 400 - (this.width / 2);
+	this.ticks = 0;
+}
+
+Enemy.prototype.draw = function() {
+	ctx.fillStyle = '#FFF';
+	ctx.fillRect(this.x,this.y, this.width,this.height);
+};
+
+Enemy.prototype.update = function() {
+	this.ticks++;
+	this.y = 25;
+	if (this.x < this.destination) this.x += 3;
+	if (this.x > this.destination) this.x -= 3;
+	if (this.difficulty == 1) {
+		if (this.ticks > 90) {
+			this.ticks = 0;
+			this.destination = Math.random() * 600;
+		}
+	}
+	else if (this.difficulty == 2) {
+		if (this.ticks > 90) {
+			this.destination = getClosestBall().x - (this.width/2);
+		}
+	}
+};
+
+//The closest ball in proximity to xy point.
+function getClosestBall(x,y) {
+	var theBall = null;
+	for (var i=0;i<balls.length;i++) {
+		if (balls[i] instanceof Ball) {
+			if (theBall === null) {
+				theBall = balls[i];
+				continue;
+			}
+			else {
+				if (lineDistance(theBall.x, theBall.y) > lineDistance(balls[i].x,balls[i].y)) {
+					theBall = balls[i];
+				}
+			}
+		}
+	}
+	return theBall;
+}
+
+function lineDistance( point1, point2 )
+{
+	var xs = 0;
+	var ys = 0;
+
+	xs = point2.x - point1.x;
+	xs = xs * xs;
+
+	ys = point2.y - point1.y;
+	ys = ys * ys;
+
+	return Math.sqrt( xs + ys );
+ }
 		// firework collection
 		var fireworks = [],
 		// particle collection
@@ -16,8 +149,6 @@
 		mx,
 		// mouse y coordinate
 		my;
-		
-
 
 // now we are going to setup our function placeholders for the entire demo
 
@@ -76,16 +207,16 @@ Firework.prototype.update = function( index ) {
 	} else {
 		this.targetRadius = 1;
 	}
-	
+
 	// speed up the firework
 	this.speed *= this.acceleration;
-	
+
 	// get the current velocities based on angle and speed
 	var vx = Math.cos( this.angle ) * this.speed,
 			vy = Math.sin( this.angle ) * this.speed;
 	// how far will the firework have traveled with velocities applied?
 	this.distanceTraveled = calculateDistance( this.sx, this.sy, this.x + vx, this.y + vy );
-	
+
 	// if the distance traveled, including velocities, is greater than the initial distance to the target, then the target has been reached
 	if( this.distanceTraveled >= this.distanceToTarget ) {
 		createParticles( this.tx, this.ty );
@@ -163,12 +294,11 @@ Particle.prototype.update = function( index ) {
 	this.y += Math.sin( this.angle ) * this.speed + this.gravity;
 	// fade out the particle
 	this.alpha -= this.decay;
-	
 	// remove the particle once the alpha is low enough, based on the passed in index
 	if( this.alpha <= this.decay ) {
 		particles.splice( index, 1 );
 	}
-}
+};
 
 // draw particle
 Particle.prototype.draw = function() {
@@ -178,7 +308,7 @@ Particle.prototype.draw = function() {
 	ctx.lineTo( this.x, this.y );
 	ctx.strokeStyle = 'hsla(' + this.hue + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
 	ctx.stroke();
-}
+};
 
 // create particle group/explosion
 function createParticles( x, y ) {
@@ -190,13 +320,22 @@ function createParticles( x, y ) {
 }
 
 function drawFireworks() {
+	ctx.globalCompositeOperation = 'destination-out';
+	// decrease the alpha property to create more prominent trails
+	
+	// change the composite operation back to our main mode
+	// lighter creates bright highlight points as the fireworks and particles overlap each other
+	ctx.globalCompositeOperation = 'lighter';
 	for (var i=0;i<fireworks.length;i++) {
 		fireworks[i].draw();
+		fireworks[i].update();
 	}
+	ctx.globalCompositeOperation = 'source-over';
 }
 function drawParticles() {
 	for (var i=0;i<particles.length;i++) {
 		particles[i].draw();
+		particles[i].update();
 	}
 }
 
@@ -218,7 +357,39 @@ canvas.addEventListener( 'mouseup', function( e ) {
 	e.preventDefault();
 	mousedown = false;
 });
-*///functions.js
+*/
+
+/*
+
+function loop2() {
+	// we want to create a trailing effect though
+	// setting the composite operation to destination-out will allow us to clear the canvas at a specific opacity, rather than wiping it entirely
+
+	
+	// launch fireworks automatically to random coordinates, when the mouse isn't down
+	if( timerTick >= timerTotal ) {
+		if( !mousedown ) {
+			// start the firework at the bottom middle of the screen, then set the random target coordinates, the random y coordinates will be set within the range of the top half of the screen
+			fireworks.push( new Firework( canwidth / 2, canheight, random( 0, canwidth / 2 ), random( 0, ch / 2 ) ) );
+			timerTick = 0;
+		}
+	} else {
+		timerTick++;
+	}
+	
+	// limit the rate at which fireworks get launched when mouse is down
+	if( limiterTick >= limiterTotal ) {
+		if( mousedown ) {
+			// start the firework at the bottom middle of the screen, then set the current mouse coordinates as the target
+			fireworks.push( new Firework( canwidth / 2, 0, mx, my ) ); //Launched start coordinates
+			limiterTick = 0;
+		}
+	} else {
+		limiterTick++;
+	}
+
+}
+ *///functions.js
 
 Function.prototype.inherit = function(parent) {
   this.prototype = Object.create(parent.prototype);
@@ -257,20 +428,18 @@ var entities = new Array();
 
 //HTML onLoad event - Loading the game
 $(window).load(function() {
-
-		canvas = document.getElementById('canvas');
-		canvas.height = $(window).height();
-		canvas.width = $(window).width();
-		//check whether browser supports getting canvas context
-		if (canvas && canvas.getContext) {
-			ctx = canvas.getContext('2d');
-			ctx.fillStyle="#000";
-			ctx.fillRect(0,0,1100,900);
-		}
-		game = new Game();
-		loop();
+	canvas = document.getElementById('canvas');
+	canvas.height = 600;
+	canvas.width = 800;
+	//check whether browser supports getting canvas context
+	if (canvas && canvas.getContext) {
+		ctx = canvas.getContext('2d');
+		ctx.fillStyle="#000";
+		ctx.fillRect(0,0,800,600);
 	}
-)
+	game = new Game();
+	loop();
+});
 
 
 function Game() {
@@ -278,81 +447,53 @@ function Game() {
 	this.gameover = false;
 	this.currentWave = 1;
 	this.level = new Level(0,0);
-;}
+	fireworks.push(new Firework(50,50,400,400));
+	this.start();
+}
+
+Game.prototype.start = function() {
+	balls.push(new Ball(250,250,4,4));
+};
 
 /* Game Loop */
 
 var frameTime = 0;
 function loop()
 {
-	if ($(window).width() != canvas.width || $(window).height() != canvas.height) {
-		canvas.height = $(window).height();
-		canvas.width = $(window).width();
-	}
-	if (getCurrentMs() - frameTime > 0.019) {
+
+	if (getCurrentMs() - frameTime > 0.018) {
 		frameTime = getCurrentMs();
 		draw();
 		update();
 		loop();
-
 	}
-	else setTimeout('loop()', 19);
+	else setTimeout('loop()', 18);
 }
 
 function draw() {
-
 	if (game.started) {
 		renderLevel(game.level);
 		screen.scroll();
-		
 		for (var i=0;i<entities.length;i++) {
 			entities[i].render();
 		}
+		drawBalls();
+		enemy.draw();
 		player.draw();
+		drawFireworks();
+		drawParticles();
 	}
 }
 
 function update() {
 	if (!game.gameover && game.started) {
+		updateBalls();
+		enemy.update();
 		player.update();
 	}
 }
 
 
-function loop2() {
-	// we want to create a trailing effect though
-	// setting the composite operation to destination-out will allow us to clear the canvas at a specific opacity, rather than wiping it entirely
-	ctx.globalCompositeOperation = 'destination-out';
-	// decrease the alpha property to create more prominent trails
-	ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-	ctx.fillRect( 0, 0, canwidth, canheight );
-	// change the composite operation back to our main mode
-	// lighter creates bright highlight points as the fireworks and particles overlap each other
-	ctx.globalCompositeOperation = 'lighter';
-	
-	// launch fireworks automatically to random coordinates, when the mouse isn't down
-	if( timerTick >= timerTotal ) {
-		if( !mousedown ) {
-			// start the firework at the bottom middle of the screen, then set the random target coordinates, the random y coordinates will be set within the range of the top half of the screen
-			fireworks.push( new Firework( canwidth / 2, canheight, random( 0, canwidth / 2 ), random( 0, ch / 2 ) ) );
-			timerTick = 0;
-		}
-	} else {
-		timerTick++;
-	}
-	
-	// limit the rate at which fireworks get launched when mouse is down
-	if( limiterTick >= limiterTotal ) {
-		if( mousedown ) {
-			// start the firework at the bottom middle of the screen, then set the current mouse coordinates as the target
-			fireworks.push( new Firework( canwidth / 2, 0, mx, my ) ); //Launched start coordinates
-			limiterTick = 0;
-		}
-	} else {
-		limiterTick++;
-	}
-
-}
 
 $(window).load(function() {
 	window.addEventListener('keydown', handleKeyDown, true);
@@ -377,7 +518,7 @@ function handleKeyUp(evt) {
 $('canvas').bind('contextmenu', function(e){
 	rightClick(e);
     return false; //Disable usual context menu behaviour
-}); 
+});
 //Function for key bindings
 function handleInteractions() {
 	if (keys[38]) { //Up arrow
@@ -399,20 +540,20 @@ function handleInteractions() {
 
 $(window).load(function() {
 //Mouse movement
-$('#canvas').mousemove(function(e){
-    mouse.x = e.pageX - this.offsetLeft;
-    mouse.y = e.pageY - this.offsetTop;
-});
-
+	$('#canvas').mousemove(function(e){
+		mouse.x = e.pageX - this.offsetLeft;
+		mouse.y = e.pageY - this.offsetTop;
+	});
 });
 
 function rightClick(e) {
-	
+
 }
 
-//Mouse clicks hook
-$("#canvas").click(function(e){
-
+$(window).load(function() {
+	$("#canvas").click(function(e){
+		player.fire1();
+	});
 });
 
 /*! jQuery v1.10.1 | (c) 2005, 2013 jQuery Foundation, Inc. | jquery.org/license
@@ -469,18 +610,25 @@ function Player() {
 	this.score = 0;
 	this.x = 0;
 	this.y = 0;
+	this.width = 150;
 	this.powerup = 0;
+	this.lives = 3;
+	this.health = 100;
 }
 
 Player.prototype.draw = function() {
 	ctx.fillStyle = '#FFF';
-	ctx.fillRect(this.x,this.y, 150,30);
-}
+	ctx.fillRect(this.x,this.y, this.width,30);
+};
 
 Player.prototype.update = function() {
-	this.x = mouse.x;
-	this.y = canvas.height - 200;
-}//tile.js
+	this.x = mouse.x - (this.width/2);
+	this.y = 550;
+};
+
+Player.prototype.fire1 = function() {
+	fireworks.push(new Firework(this.x+(this.width/2), this.y, enemy.x+(enemy.width/2),enemy.y));
+};//tile.js
 
 var r=0,g=0;b=0;
 

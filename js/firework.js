@@ -16,8 +16,6 @@
 		mx,
 		// mouse y coordinate
 		my;
-		
-
 
 // now we are going to setup our function placeholders for the entire demo
 
@@ -76,16 +74,16 @@ Firework.prototype.update = function( index ) {
 	} else {
 		this.targetRadius = 1;
 	}
-	
+
 	// speed up the firework
 	this.speed *= this.acceleration;
-	
+
 	// get the current velocities based on angle and speed
 	var vx = Math.cos( this.angle ) * this.speed,
 			vy = Math.sin( this.angle ) * this.speed;
 	// how far will the firework have traveled with velocities applied?
 	this.distanceTraveled = calculateDistance( this.sx, this.sy, this.x + vx, this.y + vy );
-	
+
 	// if the distance traveled, including velocities, is greater than the initial distance to the target, then the target has been reached
 	if( this.distanceTraveled >= this.distanceToTarget ) {
 		createParticles( this.tx, this.ty );
@@ -163,12 +161,11 @@ Particle.prototype.update = function( index ) {
 	this.y += Math.sin( this.angle ) * this.speed + this.gravity;
 	// fade out the particle
 	this.alpha -= this.decay;
-	
 	// remove the particle once the alpha is low enough, based on the passed in index
 	if( this.alpha <= this.decay ) {
 		particles.splice( index, 1 );
 	}
-}
+};
 
 // draw particle
 Particle.prototype.draw = function() {
@@ -178,7 +175,7 @@ Particle.prototype.draw = function() {
 	ctx.lineTo( this.x, this.y );
 	ctx.strokeStyle = 'hsla(' + this.hue + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
 	ctx.stroke();
-}
+};
 
 // create particle group/explosion
 function createParticles( x, y ) {
@@ -190,13 +187,22 @@ function createParticles( x, y ) {
 }
 
 function drawFireworks() {
+	ctx.globalCompositeOperation = 'destination-out';
+	// decrease the alpha property to create more prominent trails
+	
+	// change the composite operation back to our main mode
+	// lighter creates bright highlight points as the fireworks and particles overlap each other
+	ctx.globalCompositeOperation = 'lighter';
 	for (var i=0;i<fireworks.length;i++) {
 		fireworks[i].draw();
+		fireworks[i].update();
 	}
+	ctx.globalCompositeOperation = 'source-over';
 }
 function drawParticles() {
 	for (var i=0;i<particles.length;i++) {
 		particles[i].draw();
+		particles[i].update();
 	}
 }
 
@@ -219,3 +225,35 @@ canvas.addEventListener( 'mouseup', function( e ) {
 	mousedown = false;
 });
 */
+
+/*
+
+function loop2() {
+	// we want to create a trailing effect though
+	// setting the composite operation to destination-out will allow us to clear the canvas at a specific opacity, rather than wiping it entirely
+
+	
+	// launch fireworks automatically to random coordinates, when the mouse isn't down
+	if( timerTick >= timerTotal ) {
+		if( !mousedown ) {
+			// start the firework at the bottom middle of the screen, then set the random target coordinates, the random y coordinates will be set within the range of the top half of the screen
+			fireworks.push( new Firework( canwidth / 2, canheight, random( 0, canwidth / 2 ), random( 0, ch / 2 ) ) );
+			timerTick = 0;
+		}
+	} else {
+		timerTick++;
+	}
+	
+	// limit the rate at which fireworks get launched when mouse is down
+	if( limiterTick >= limiterTotal ) {
+		if( mousedown ) {
+			// start the firework at the bottom middle of the screen, then set the current mouse coordinates as the target
+			fireworks.push( new Firework( canwidth / 2, 0, mx, my ) ); //Launched start coordinates
+			limiterTick = 0;
+		}
+	} else {
+		limiterTick++;
+	}
+
+}
+ */

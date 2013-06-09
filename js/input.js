@@ -22,7 +22,7 @@ function handleKeyUp(evt) {
 $('canvas').bind('contextmenu', function(e){
 	rightClick(e);
     return false; //Disable usual context menu behaviour
-}); 
+});
 //Function for key bindings
 function handleInteractions() {
 	if (keys[38]) { //Up arrow
@@ -44,19 +44,19 @@ function handleInteractions() {
 
 $(window).load(function() {
 //Mouse movement
-$('#canvas').mousemove(function(e){
-    mouse.x = e.pageX - this.offsetLeft;
-    mouse.y = e.pageY - this.offsetTop;
-});
-
+	$('#canvas').mousemove(function(e){
+		mouse.x = e.pageX - this.offsetLeft;
+		mouse.y = e.pageY - this.offsetTop;
+	});
 });
 
 function rightClick(e) {
-	
+
 }
 
-//Mouse clicks hook
-$("#canvas").click(function(e){
-
+$(window).load(function() {
+	$("#canvas").click(function(e){
+		player.fire1();
+	});
 });
 
