@@ -5,35 +5,47 @@ function Ball(x,y,xv,yv) {
 	this.y = y;
 	this.xv = xv;
 	this.yv = yv;
-	this.width = 20;
-	this.height = 20;
+	this.width = 18;
+	this.height = 18;
 	this.spawned = false;
-	this.spawn();
 	this.item = null;
 	this.particleTicks = 0;
 	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
+	this.coordinates = [];
+	this.coordinateCount = 10;
+	while( this.coordinateCount-- ) {
+		this.coordinates.push( [ this.x, this.y ] );
+	}
 }
 
-Ball.prototype.spawn = function() {
-	ctx.fillRect();
-};
-
 Ball.prototype.draw = function() {
-	ctx.fillStyle = "#F0F";
-	ctx.fillRect(this.x,this.y,this.width,this.height);
+	var hue = 123;
 	if (this.item !== null) {
 		this.particleTicks++;
 		if (this.particleTicks > 2) {
-			ctx.fillStyle = "#0F0";
-			ctx.fillRect(this.x,this.y,this.width,this.height);
+			hue = 2;
 			this.particleTicks = 0;
 		}
+	}
+	this.coordinates.pop();
+	this.coordinates.unshift( [this.x,this.y] );
+	ctx.beginPath();
+	ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
+	ctx.lineTo(this.x,this.y);
+	if (Math.abs(this.x)+Math.abs(this.y) < 10) i = 22;
+	for (var i=0;i<this.coordinates.length;i++) {
+		var alpha = (3 - i) * 0.12;
+		hue = 249;
+		ctx.fillStyle = 'hsla(' + hue + ', 100%, ' + 90 + '%, ' + alpha + ')';
+		ctx.fillCircle(this.coordinates[i][0], this.coordinates[i][1], 10,10);
+		ctx.fillCircle(this.coordinates[i][0]-this.xv/2, this.coordinates[i][1]-this.yv/2, 10,10);
+		ctx.fillCircle(this.coordinates[i][0]-this.xv/5, this.coordinates[i][1]-this.yv/5, 10,10);
 	}
 };
 
 Ball.prototype.update = function() {
 	this.move();
-	this.boundingBox.update(this.x,this.y);
+	this.boundingBox.update(this.x-(this.width/3),this.y-(this.height/3));
 };
 
 Ball.prototype.move = function() {
@@ -44,32 +56,56 @@ Ball.prototype.move = function() {
 	this.y += changey;
 	//Collision with walls
 	if (this.x + this.xv < 0 || this.x + this.width + this.xv > canvas.width) this.xv *= -1;
-	if (this.y + this.yv < 0 || this.y + this.height + this.yv > canvas.height) this.yv *= -1;
 
 	//Collision with paddles
 	if (this.yv > 0) {
 		if (this.boundingBox.isColliding(player)) {
 			this.yv *= -1;
+			if (player.pushing) this.yv *= 1.5;
 		}
 	}
+	//Collision with enemy
 	if (this.yv < 0) {
-		if (this.boundingBox.isColliding(enemy)) {
+		if (this.boundingBox.isColliding(enemy) && this.y > 25) {
 			this.yv *= -1;
+			if (enemy.pushing) this.yv *= 1.5;
 		}
 	}
-
+	//Collision with player
 	for (var i=0;i<items.length;i++) {
 		if (this.boundingBox.isColliding(items[i])) {
 			this.item = items[i];
 			items[i].pickedUp = true;
 		}
 	}
+	for (var i=0;i<blocks.length;i++) {
+		if (this.boundingBox.isColliding(blocks[i])) {
+			blocks[i].damage();
+			this.yv *= -1;
+			break;
+		}
+	}
+	//Speed limits
+	if (this.xv > 14) this.xv = 14;
+	if (this.yv > 14) this.yv = 14;
+	if (this.xv < -14) this.xv = -14;
+	if (this.yv < -14) this.yv = -14;
 
 	this.x -= changex;
 	this.y -= changey;
 	this.x += this.xv;
 	this.y += this.yv;
 };
+
+Ball.prototype.destroy = function() {
+	for (var i = 0; i < balls.length; i++)
+	{
+		if (balls[i] === this) { 
+			balls.splice(i, 1);
+			break;
+		}
+	}
+}
 
 function drawBalls() {
 	for (var i=0;i<balls.length;i++) {
@@ -81,7 +117,77 @@ function updateBalls() {
 	for (var i=0;i<balls.length;i++) {
 		balls[i].update();
 	}
-}//boundingbox.js
+}var blocks = [];
+
+for (var i=0;i<14;i++) {
+	blocks.push(new Block(i*50,580));
+}
+for (var i=0;i<14;i++) {
+	blocks.push(new Block(i*50,0,player));
+}
+
+function Block(x,y,owner) {
+	this.x = x;
+	this.y = y;
+	this.width = 50;
+	this.height = 20;
+	this.health = 10;
+	this.owner = owner;
+	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
+}
+
+Block.prototype.draw = function() {
+	ctx.fillStyle = "#666";
+	switch (this.health) {
+		case 10: ctx.fillStyle = "#999"; break;
+		case 9: ctx.fillStyle = "#888"; break;
+		case 8: ctx.fillStyle = "#777"; break;
+		case 7: ctx.fillStyle = "#666"; break;
+		case 6: ctx.fillStyle = "#555"; break;
+		case 5: ctx.fillStyle = "#444"; break;
+		case 4: ctx.fillStyle = "#333"; break;
+		case 3: ctx.fillStyle = "#222"; break;
+		case 2: ctx.fillStyle = "#111"; break;
+		case 1: ctx.fillStyle = "#010101"; break;
+		case 0: ctx.fillStyle = "#000"; break;
+	}
+	ctx.fillRect(this.x,this.y,this.width,this.height);
+	ctx.strokeStyle = "#000";
+	ctx.strokeRect(this.x,this.y,this.width,this.height);
+};
+
+Block.prototype.update = function() {
+
+};
+
+Block.prototype.damage = function() {
+	this.health -= 1;
+	if (this.health <= 0) this.destroy();
+	console.log(this.health);
+};
+
+Block.prototype.destroy = function() {
+	for (var i = 0; i < blocks.length; i++)
+	{
+		if (blocks[i] === this) { 
+			blocks.splice(i, 1);
+			break;
+		}
+	}
+};
+
+function drawBlocks() {
+	for (var i=0;i<blocks.length;i++) {
+		blocks[i].draw();
+	}
+}
+
+function updateBlocks() {
+	for (var i=0;i<blocks.length;i++) {
+		blocks[i].update();
+	}
+}
+//boundingbox.js
 
 function BoundingBox(x,y,width,height) {
 	this.x = x;
@@ -124,11 +230,14 @@ function Enemy(difficulty) {
 	this.score = 0;
 	this.difficulty = difficulty;
 	this.x = 400;
-	this.y = 0;
+	this.y = 40;
 	this.powerup = 0;
 	this.lives = 3;
 	this.width = 150;
 	this.height = 30;
+	this.pushing = false;
+	this.lastPush = 0;
+	this.speed = 3;
 	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 	this.destination = 400 - (this.width / 2);
 	this.ticks = 0;
@@ -137,13 +246,26 @@ function Enemy(difficulty) {
 Enemy.prototype.draw = function() {
 	ctx.fillStyle = '#FFF';
 	ctx.fillRect(this.x,this.y, this.width,this.height);
+
+	var sight = getClosestBall(this.x+(this.width/2),this.y);
+	var eye1x = -4 + (this.x - (sight.x * -1)) / 120; //Eye offsets based on closest ball position
+	var eye2x = -4 + (this.x - (sight.x * -1)) / 120;
+
+	ctx.strokeCircle(this.x+20,this.y+18,10,"#000");
+	ctx.fillCircle(this.x+20+eye1x,this.y+20, 7, "#000");
+
+	ctx.strokeCircle(this.x+130,this.y+18,10,"#000");
+	ctx.fillCircle(this.x+130+eye2x,this.y+20, 7, "#000");
+	//Mouth 
+	//TODO: Change mouth expression based on game state
+	ctx.fillStyle = "#333"
+	ctx.fillRect(this.x+55,this.y+15,40,15);
 };
 
 Enemy.prototype.update = function() {
 	this.ticks++;
-	this.y = 25;
-	if (this.x < this.destination) this.x += 3;
-	if (this.x > this.destination) this.x -= 3;
+	if (this.x < this.destination) this.x += this.speed;
+	if (this.x > this.destination) this.x -= this.speed;
 	if (this.difficulty == 1) {
 		if (this.ticks > 90) {
 			this.ticks = 0;
@@ -151,11 +273,55 @@ Enemy.prototype.update = function() {
 		}
 	}
 	else if (this.difficulty == 2) {
-		if (this.ticks > 90) {
+		if (this.ticks > 80) {
 			this.destination = getClosestBall().x - (this.width/2);
+			var closeBall = getClosestBall();
+			if (lineDistance(new Point(this.x+(this.width/2),this.y),new Point(closeBall.x,closeBall.y)) < 50) {
+				this.push();
+			}
+		}
+	}
+	else if (this.difficulty == 3) {
+		if (this.ticks > 40) {
+			this.destination = getClosestBall().x - (this.width/2);
+			var closeBall = getClosestBall();
+			if (lineDistance(new Point(this.x+(this.width/2),this.y),new Point(closeBall.x,closeBall.y)) < 50) {
+				this.push();
+			}
 		}
 	}
 	this.boundingBox.update(this.x,this.y);
+};
+
+
+Enemy.prototype.push = function() {
+	if (this.lastPush + 0.8 < getCurrentMs()) {
+		this.pushing = true;
+		this.pushUp();
+		this.lastPush = getCurrentMs();
+	}
+};
+
+Enemy.prototype.pushUp = function() {
+	var self = this;
+	if (this.y > 65) {
+		setTimeout(function () {
+			self.pushing = false;
+		}, 5);
+	}
+	if (this.pushing) {
+		this.y += 3;
+		setTimeout(function () {
+			self.pushUp();
+		}, 5);
+		return;
+	}
+	else if (this.y > 25) {
+		this.y -= 1;
+		setTimeout(function () {
+			self.pushUp();
+		}, 5);
+	}
 };
 
 //The closest ball in proximity to xy point.
@@ -359,7 +525,7 @@ Particle.prototype.update = function( index ) {
 
 // draw particle
 Particle.prototype.draw = function() {
-	ctx. beginPath();
+	ctx.beginPath();
 	// move to the last tracked coordinates in the set, then draw a line to the current x and y
 	ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
 	ctx.lineTo( this.x, this.y );
@@ -474,6 +640,8 @@ function DegToRad(d) {
     return d * 0.0174532925199432957;
 }
 var canvas = null;
+var _canvas = document.createElement('canvas');
+
 var ctx = null;
 
 //Draw entire buffer onto main canvas: ctx.drawImage(canvasBuffer, 0, 0);
@@ -481,7 +649,7 @@ var ctx = null;
 /* Loading */
 
 var game = null;
-var entities = new Array();
+var entities = [];
 
 //HTML onLoad event - Loading the game
 $(window).load(function() {
@@ -514,23 +682,21 @@ function Game() {
 }
 
 Game.prototype.start = function() {
-	balls.push(new Ball(250,250,6,6));
-	balls.push(new Ball(350,250,6,6));
-
+	balls.push(new Ball(250,250,4,4));
+	balls.push(new Ball(350,250,4,4));
 };
 
 /* Game Loop */
 
+var lastFrame = 0;
 var frameTime = 0;
 function loop()
 {
-	if (getCurrentMs() - frameTime > 0.030) {
-		frameTime = getCurrentMs();
-		draw();
-		update();
-		loop();
-	}
-	else setTimeout('loop()', 30);
+	frameTime = getCurrentMs() - lastFrame;
+	var thisFrame = getCurrentMs();
+	draw();
+	update();
+	requestAnimationFrame(loop);
 }
 
 function draw() {
@@ -546,6 +712,7 @@ function draw() {
 		drawItems();
 		drawFireworks();
 		drawParticles();
+		drawBlocks();
 	}
 	else {
 		if (game.menu !== null)
@@ -582,7 +749,7 @@ document.onkeydown=function(){return event.keyCode!=38 && event.keyCode!=40 && e
  
 function handleKeyDown(evt) {
 	keys[evt.keyCode] = true;
-	if (keys[32]) player.fire1();  
+	handleInteractions(); 
 }
 function handleKeyUp(evt) {
 	keys[evt.keyCode] = false;
@@ -603,7 +770,7 @@ function handleInteractions() {
 
 	}
 	if (keys [32]) { //spacebar
-		
+		player.push();
 	}
 }
 
@@ -615,7 +782,7 @@ $(window).load(function() {
 	});
 	//Mouse Cick
 	$("#canvas").click(function(e){
-		player.fire1();
+		
 	});
 });
 
@@ -652,9 +819,6 @@ Item.prototype.update = function() {
 	this.y += this.yv;
 	this.boundingBox.update(this.x,this.y);
 };
-
-
-
 
 function drawItems() {
 	for (var i=0;i<items.length;i++) {
@@ -732,7 +896,7 @@ Option.prototype.execute = function() {
 function Player() {
 	this.score = 0;
 	this.x = 0;
-	this.y = 0;
+	this.y = 530;
 	this.speed = 6;
 	this.width = 150;
 	this.height = 30;
@@ -740,6 +904,8 @@ function Player() {
 	this.powerup = 0;
 	this.lives = 3;
 	this.health = 100;
+	this.pushing = false;
+	this.lastPush = 0;
 	this.lastFire = getCurrentMs();
 	this.inventory = [];
 }
@@ -783,8 +949,6 @@ CanvasRenderingContext2D.prototype.strokeCircle = function(x,y,r,color) {
 };
 
 Player.prototype.update = function() {
-	//this.x = mouse.x - (this.width/2);
-	this.y = 550;
 	this.boundingBox.update(this.x,this.y);
 };
 
@@ -795,9 +959,43 @@ Player.prototype.fire = function() {
 	}
 };
 
+Player.prototype.push = function() {
+	if (this.lastPush + 0.8 < getCurrentMs()) {
+		this.pushing = true;
+		this.pushUp();
+		this.lastPush = getCurrentMs();
+	}
+};
+
+Player.prototype.pushUp = function() {
+	var self = this;
+	if (this.y < 490) {
+		setTimeout(function () {
+			self.pushing = false;
+		}, 5);
+	}
+	if (this.pushing) {
+		this.y -= (this.y / 300);
+		setTimeout(function () {
+			self.pushUp();
+		}, 5);
+		return;
+	}
+	else if (this.y < 530) {
+		this.y += 1;
+		setTimeout(function () {
+			self.pushUp();
+		}, 5);
+	}
+};
+
 Player.prototype.useItem = function(number) {
 
-};//Using audiofx.min.js
+};
+function Point(x,y) {
+	this.x = x;
+	this.y = y;
+}//Using audiofx.min.js
 
 if (AudioFX.supported) {
 	//var shufflesound = AudioFX('sounds/cardshuffle', { formats: ['wav'], pool:2 });

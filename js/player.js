@@ -2,7 +2,7 @@ var player = new Player();
 function Player() {
 	this.score = 0;
 	this.x = 0;
-	this.y = 0;
+	this.y = 530;
 	this.speed = 6;
 	this.width = 150;
 	this.height = 30;
@@ -10,6 +10,8 @@ function Player() {
 	this.powerup = 0;
 	this.lives = 3;
 	this.health = 100;
+	this.pushing = false;
+	this.lastPush = 0;
 	this.lastFire = getCurrentMs();
 	this.inventory = [];
 }
@@ -53,8 +55,6 @@ CanvasRenderingContext2D.prototype.strokeCircle = function(x,y,r,color) {
 };
 
 Player.prototype.update = function() {
-	//this.x = mouse.x - (this.width/2);
-	this.y = 550;
 	this.boundingBox.update(this.x,this.y);
 };
 
@@ -62,6 +62,36 @@ Player.prototype.fire = function() {
 	if (getCurrentMs() - this.lastFire > 0.120) { //TODO: Fix this, limit fire rate
 		fireworks.push(new Firework(this.x+(this.width/2), this.y, enemy.x+(enemy.width/2),enemy.y));
 		this.lastFire = getCurrentMs();
+	}
+};
+
+Player.prototype.push = function() {
+	if (this.lastPush + 0.8 < getCurrentMs()) {
+		this.pushing = true;
+		this.pushUp();
+		this.lastPush = getCurrentMs();
+	}
+};
+
+Player.prototype.pushUp = function() {
+	var self = this;
+	if (this.y < 490) {
+		setTimeout(function () {
+			self.pushing = false;
+		}, 5);
+	}
+	if (this.pushing) {
+		this.y -= (this.y / 300);
+		setTimeout(function () {
+			self.pushUp();
+		}, 5);
+		return;
+	}
+	else if (this.y < 530) {
+		this.y += 1;
+		setTimeout(function () {
+			self.pushUp();
+		}, 5);
 	}
 };
 

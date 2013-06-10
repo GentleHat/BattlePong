@@ -3,11 +3,14 @@ function Enemy(difficulty) {
 	this.score = 0;
 	this.difficulty = difficulty;
 	this.x = 400;
-	this.y = 0;
+	this.y = 40;
 	this.powerup = 0;
 	this.lives = 3;
 	this.width = 150;
 	this.height = 30;
+	this.pushing = false;
+	this.lastPush = 0;
+	this.speed = 3;
 	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 	this.destination = 400 - (this.width / 2);
 	this.ticks = 0;
@@ -16,13 +19,26 @@ function Enemy(difficulty) {
 Enemy.prototype.draw = function() {
 	ctx.fillStyle = '#FFF';
 	ctx.fillRect(this.x,this.y, this.width,this.height);
+
+	var sight = getClosestBall(this.x+(this.width/2),this.y);
+	var eye1x = -4 + (this.x - (sight.x * -1)) / 120; //Eye offsets based on closest ball position
+	var eye2x = -4 + (this.x - (sight.x * -1)) / 120;
+
+	ctx.strokeCircle(this.x+20,this.y+18,10,"#000");
+	ctx.fillCircle(this.x+20+eye1x,this.y+20, 7, "#000");
+
+	ctx.strokeCircle(this.x+130,this.y+18,10,"#000");
+	ctx.fillCircle(this.x+130+eye2x,this.y+20, 7, "#000");
+	//Mouth 
+	//TODO: Change mouth expression based on game state
+	ctx.fillStyle = "#333"
+	ctx.fillRect(this.x+55,this.y+15,40,15);
 };
 
 Enemy.prototype.update = function() {
 	this.ticks++;
-	this.y = 25;
-	if (this.x < this.destination) this.x += 3;
-	if (this.x > this.destination) this.x -= 3;
+	if (this.x < this.destination) this.x += this.speed;
+	if (this.x > this.destination) this.x -= this.speed;
 	if (this.difficulty == 1) {
 		if (this.ticks > 90) {
 			this.ticks = 0;
@@ -30,11 +46,55 @@ Enemy.prototype.update = function() {
 		}
 	}
 	else if (this.difficulty == 2) {
-		if (this.ticks > 90) {
+		if (this.ticks > 80) {
 			this.destination = getClosestBall().x - (this.width/2);
+			var closeBall = getClosestBall();
+			if (lineDistance(new Point(this.x+(this.width/2),this.y),new Point(closeBall.x,closeBall.y)) < 50) {
+				this.push();
+			}
+		}
+	}
+	else if (this.difficulty == 3) {
+		if (this.ticks > 40) {
+			this.destination = getClosestBall().x - (this.width/2);
+			var closeBall = getClosestBall();
+			if (lineDistance(new Point(this.x+(this.width/2),this.y),new Point(closeBall.x,closeBall.y)) < 50) {
+				this.push();
+			}
 		}
 	}
 	this.boundingBox.update(this.x,this.y);
+};
+
+
+Enemy.prototype.push = function() {
+	if (this.lastPush + 0.8 < getCurrentMs()) {
+		this.pushing = true;
+		this.pushUp();
+		this.lastPush = getCurrentMs();
+	}
+};
+
+Enemy.prototype.pushUp = function() {
+	var self = this;
+	if (this.y > 65) {
+		setTimeout(function () {
+			self.pushing = false;
+		}, 5);
+	}
+	if (this.pushing) {
+		this.y += 3;
+		setTimeout(function () {
+			self.pushUp();
+		}, 5);
+		return;
+	}
+	else if (this.y > 25) {
+		this.y -= 1;
+		setTimeout(function () {
+			self.pushUp();
+		}, 5);
+	}
 };
 
 //The closest ball in proximity to xy point.

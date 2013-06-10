@@ -1,5 +1,7 @@
 
 var canvas = null;
+var _canvas = document.createElement('canvas');
+
 var ctx = null;
 
 //Draw entire buffer onto main canvas: ctx.drawImage(canvasBuffer, 0, 0);
@@ -7,7 +9,7 @@ var ctx = null;
 /* Loading */
 
 var game = null;
-var entities = new Array();
+var entities = [];
 
 //HTML onLoad event - Loading the game
 $(window).load(function() {
@@ -40,23 +42,21 @@ function Game() {
 }
 
 Game.prototype.start = function() {
-	balls.push(new Ball(250,250,6,6));
-	balls.push(new Ball(350,250,6,6));
-
+	balls.push(new Ball(250,250,4,4));
+	balls.push(new Ball(350,250,4,4));
 };
 
 /* Game Loop */
 
+var lastFrame = 0;
 var frameTime = 0;
 function loop()
 {
-	if (getCurrentMs() - frameTime > 0.030) {
-		frameTime = getCurrentMs();
-		draw();
-		update();
-		loop();
-	}
-	else setTimeout('loop()', 30);
+	frameTime = getCurrentMs() - lastFrame;
+	var thisFrame = getCurrentMs();
+	draw();
+	update();
+	requestAnimationFrame(loop);
 }
 
 function draw() {
@@ -72,6 +72,7 @@ function draw() {
 		drawItems();
 		drawFireworks();
 		drawParticles();
+		drawBlocks();
 	}
 	else {
 		if (game.menu !== null)

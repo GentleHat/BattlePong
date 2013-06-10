@@ -168,7 +168,7 @@ Particle.prototype.update = function( index ) {
 
 // draw particle
 Particle.prototype.draw = function() {
-	ctx. beginPath();
+	ctx.beginPath();
 	// move to the last tracked coordinates in the set, then draw a line to the current x and y
 	ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
 	ctx.lineTo( this.x, this.y );

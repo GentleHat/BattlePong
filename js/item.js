@@ -29,9 +29,6 @@ Item.prototype.update = function() {
 	this.boundingBox.update(this.x,this.y);
 };
 
-
-
-
 function drawItems() {
 	for (var i=0;i<items.length;i++) {
 		items[i].draw();

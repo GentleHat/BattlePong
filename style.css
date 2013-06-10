@@ -5,9 +5,9 @@ html {
 	padding:0px;
 }
 body {
-	margin:0px;
+	margin:10px;
 	padding:0px;
-	
+
 	overflow-y: hidden;
 	overflow-x: hidden;
 	background-color:#333;

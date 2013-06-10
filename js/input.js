@@ -15,7 +15,7 @@ document.onkeydown=function(){return event.keyCode!=38 && event.keyCode!=40 && e
  
 function handleKeyDown(evt) {
 	keys[evt.keyCode] = true;
-	if (keys[32]) player.fire1();  
+	handleInteractions(); 
 }
 function handleKeyUp(evt) {
 	keys[evt.keyCode] = false;
@@ -36,7 +36,7 @@ function handleInteractions() {
 
 	}
 	if (keys [32]) { //spacebar
-		
+		player.push();
 	}
 }
 
@@ -48,7 +48,7 @@ $(window).load(function() {
 	});
 	//Mouse Cick
 	$("#canvas").click(function(e){
-		player.fire1();
+		
 	});
 });
 
