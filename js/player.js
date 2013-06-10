@@ -17,8 +17,25 @@ function Player() {
 Player.prototype.draw = function() {
 	ctx.fillStyle = '#FFF';
 	ctx.fillRect(this.x,this.y, this.width,30);
+	//Eyes
+	var sight = getClosestBall(this.x+20,this.y+13);
+	var eye1x = -4 + (this.x - (sight.x * -1)) / 120; //Eye offsets based on closest ball position
+	var eye2x = -4 + (this.x - (sight.x * -1)) / 120;
+
 	ctx.strokeCircle(this.x+20,this.y+13,10,"#000");
-	//ctx.fillCircle(this.x+21,this.y+11,6,"#FFF");
+	ctx.fillCircle(this.x+20+eye1x,this.y+11, 7, "#000");
+
+	ctx.strokeCircle(this.x+130,this.y+13,10,"#000");
+	ctx.fillCircle(this.x+130+eye2x,this.y+11, 7, "#000");
+	//Mouth 
+	//TODO: Change mouth expression based on game state
+	ctx.beginPath();
+	ctx.arc(this.x+77, this.y+10, 15, 0, Math.PI, false);
+	ctx.closePath();
+	ctx.fillStyle = 'red';
+	ctx.fill();
+	ctx.strokeStyle = '#550000';
+	ctx.stroke();
 };
 
 CanvasRenderingContext2D.prototype.fillCircle = function(x,y,r,color) {
@@ -41,9 +58,13 @@ Player.prototype.update = function() {
 	this.boundingBox.update(this.x,this.y);
 };
 
-Player.prototype.fire1 = function() {
+Player.prototype.fire = function() {
 	if (getCurrentMs() - this.lastFire > 0.120) { //TODO: Fix this, limit fire rate
 		fireworks.push(new Firework(this.x+(this.width/2), this.y, enemy.x+(enemy.width/2),enemy.y));
 		this.lastFire = getCurrentMs();
 	}
+};
+
+Player.prototype.useItem = function(number) {
+
 };

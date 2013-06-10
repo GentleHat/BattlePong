@@ -9,7 +9,7 @@ function Menu() {
 
 Menu.prototype.draw = function() {
 	ctx.fillStyle="#000";
-	ctx.fillRect(0,0,800,600);
+	ctx.fillRect(0,0,canvas.width,canvas.height);
 	ctx.fillStyle="#333";
 	ctx.textAlign = 'center';
 	ctx.font = 'regular 40pt Calibri';

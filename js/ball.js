@@ -9,6 +9,8 @@ function Ball(x,y,xv,yv) {
 	this.height = 20;
 	this.spawned = false;
 	this.spawn();
+	this.item = null;
+	this.particleTicks = 0;
 	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 }
 
@@ -19,6 +21,14 @@ Ball.prototype.spawn = function() {
 Ball.prototype.draw = function() {
 	ctx.fillStyle = "#F0F";
 	ctx.fillRect(this.x,this.y,this.width,this.height);
+	if (this.item !== null) {
+		this.particleTicks++;
+		if (this.particleTicks > 2) {
+			ctx.fillStyle = "#0F0";
+			ctx.fillRect(this.x,this.y,this.width,this.height);
+			this.particleTicks = 0;
+		}
+	}
 };
 
 Ball.prototype.update = function() {
@@ -33,8 +43,8 @@ Ball.prototype.move = function() {
 	this.x += changex;
 	this.y += changey;
 	//Collision with walls
-	if (this.x + this.xv < 0 || this.x + this.width + this.xv > 800) this.xv *= -1;
-	if (this.y + this.yv < 0 || this.y + this.height + this.yv > 600) this.yv *= -1;
+	if (this.x + this.xv < 0 || this.x + this.width + this.xv > canvas.width) this.xv *= -1;
+	if (this.y + this.yv < 0 || this.y + this.height + this.yv > canvas.height) this.yv *= -1;
 
 	//Collision with paddles
 	if (this.yv > 0) {
@@ -47,16 +57,14 @@ Ball.prototype.move = function() {
 			this.yv *= -1;
 		}
 	}
-	
-	//Collide with balls
-	for (var i=0;i<balls.length;i++) {
-		if (balls[i] !== this) {
-			if (this.boundingBox.isCollidingX(balls[i])) {
-				this.xv *= -1;
-				this.yv *= -1;
-			}
+
+	for (var i=0;i<items.length;i++) {
+		if (this.boundingBox.isColliding(items[i])) {
+			this.item = items[i];
+			items[i].pickedUp = true;
 		}
 	}
+
 	this.x -= changex;
 	this.y -= changey;
 	this.x += this.xv;

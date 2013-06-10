@@ -18,10 +18,10 @@ function Tile(x, y, id) {
 
 Tile.prototype.setColor = function(color) {
 	this.color = color;
-}
+};
 
 Tile.prototype.render = function() {
 	ctx.fillStyle="#CCF";
 	ctx.fillStyle = this.color;
 	ctx.fillRect(this.x+screen.xOffset,this.y+screen.yOffset,64,64);
-}
+};

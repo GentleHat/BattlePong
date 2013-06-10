@@ -13,12 +13,12 @@ var entities = new Array();
 $(window).load(function() {
 	canvas = document.getElementById('canvas');
 	canvas.height = 600;
-	canvas.width = 800;
+	canvas.width = 700;
 	//check whether browser supports getting canvas context
 	if (canvas && canvas.getContext) {
 		ctx = canvas.getContext('2d');
 		ctx.fillStyle="#000";
-		ctx.fillRect(0,0,800,600);
+		ctx.fillRect(0,0,canvas.width,canvas.height);
 	}
 	game = new Game();
 	loop();
@@ -34,6 +34,7 @@ function Game() {
 	for (var i=0;i<10;i++) {
 		this.levels[i] = new Level(i);
 	}
+	level = this.levels[0];
 	fireworks.push(new Firework(50,50,400,400));
 	this.start();
 }
@@ -41,7 +42,6 @@ function Game() {
 Game.prototype.start = function() {
 	balls.push(new Ball(250,250,6,6));
 	balls.push(new Ball(350,250,6,6));
-	balls.push(new Ball(750,250,6,6));
 
 };
 
@@ -62,13 +62,14 @@ function loop()
 function draw() {
 	if (game.ingame) {
 		ctx.fillStyle = "#000";
-		ctx.fillRect(0,0,800,600);
+		ctx.fillRect(0,0,canvas.width,canvas.height);
 		for (var i=0;i<entities.length;i++) {
 			entities[i].render();
 		}
 		drawBalls();
 		enemy.draw();
 		player.draw();
+		drawItems();
 		drawFireworks();
 		drawParticles();
 	}
@@ -83,6 +84,8 @@ function update() {
 		updateBalls();
 		enemy.update();
 		player.update();
+		updateItems();
+		level.update();
 	}
 	handleInteractions();
 }
