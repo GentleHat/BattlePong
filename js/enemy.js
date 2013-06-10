@@ -8,6 +8,7 @@ function Enemy(difficulty) {
 	this.lives = 3;
 	this.width = 150;
 	this.height = 30;
+	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 	this.destination = 400 - (this.width / 2);
 	this.ticks = 0;
 }
@@ -33,6 +34,7 @@ Enemy.prototype.update = function() {
 			this.destination = getClosestBall().x - (this.width/2);
 		}
 	}
+	this.boundingBox.update(this.x,this.y);
 };
 
 //The closest ball in proximity to xy point.

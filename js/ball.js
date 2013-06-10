@@ -9,6 +9,7 @@ function Ball(x,y,xv,yv) {
 	this.height = 20;
 	this.spawned = false;
 	this.spawn();
+	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 }
 
 Ball.prototype.spawn = function() {
@@ -22,52 +23,32 @@ Ball.prototype.draw = function() {
 
 Ball.prototype.update = function() {
 	this.move();
+	this.boundingBox.update(this.x,this.y);
 };
 
 Ball.prototype.move = function() {
 	//Collision with walls
 	if (this.x + this.xv < 0 || this.x + this.width + this.xv > 800) this.xv *= -1;
 	if (this.y + this.yv < 0 || this.y + this.height + this.yv > 600) this.yv *= -1;
-	//Collision with player
-	if (this.x + this.width > player.x && this.x < player.x + player.width) {
-		if (this.y + this.height >= player.y) {
-			this.yv *= -1;
-			this.y -= 3;
-		}
+
+	//Collision with paddles
+	if (this.boundingBox.isColliding(player)) {
+		this.yv *= -1;
 	}
-	//Collision with enemy
-	if (this.x + this.width > enemy.x && this.x < enemy.x + enemy.width) {
-		if (this.y < enemy.y + enemy.height) {
-			this.yv *= -1;
-			this.y += 3;
-		}
+	if (this.boundingBox.isColliding(enemy)) {
+		this.yv *= -1;
 	}
-	//Collide with other balls
+	//Collide with balls
 	for (var i=0;i<balls.length;i++) {
 		if (balls[i] !== this) {
-			if (this.x + this.width > balls[i].x) {
-				if (this.y + this.height > balls[i].y) {
-					this.yv *= -1;
-					this.y -= 3;
-				}
-			}
-			if (this.x < balls[i].x + balls[i].width) {
-				if (this.y < balls[i].y + balls[i].height) {
-					this.yv *= -1;
-					this.y += 3;
-				}
+			if (this.boundingBox.isColliding(balls[i])) {
+				this.xv *= -1;
+				this.yv *= -1;
 			}
 		}
 	}
 	this.x += this.xv;
 	this.y += this.yv;
-};
-
-Ball.prototype.collidex = function() {
-	this.yv = this.xv * -1;
-};
-Ball.prototype.collidey = function() {
-	this.yv = this.yv * -1;
 };
 
 function drawBalls() {

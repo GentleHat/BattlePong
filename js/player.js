@@ -5,6 +5,8 @@ function Player() {
 	this.y = 0;
 	this.speed = 6;
 	this.width = 150;
+	this.height = 30;
+	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 	this.powerup = 0;
 	this.lives = 3;
 	this.health = 100;
@@ -36,6 +38,7 @@ CanvasRenderingContext2D.prototype.strokeCircle = function(x,y,r,color) {
 Player.prototype.update = function() {
 	//this.x = mouse.x - (this.width/2);
 	this.y = 550;
+	this.boundingBox.update(this.x,this.y);
 };
 
 Player.prototype.fire1 = function() {

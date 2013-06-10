@@ -9,6 +9,7 @@ function Ball(x,y,xv,yv) {
 	this.height = 20;
 	this.spawned = false;
 	this.spawn();
+	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 }
 
 Ball.prototype.spawn = function() {
@@ -22,52 +23,32 @@ Ball.prototype.draw = function() {
 
 Ball.prototype.update = function() {
 	this.move();
+	this.boundingBox.update(this.x,this.y);
 };
 
 Ball.prototype.move = function() {
 	//Collision with walls
 	if (this.x + this.xv < 0 || this.x + this.width + this.xv > 800) this.xv *= -1;
 	if (this.y + this.yv < 0 || this.y + this.height + this.yv > 600) this.yv *= -1;
-	//Collision with player
-	if (this.x + this.width > player.x && this.x < player.x + player.width) {
-		if (this.y + this.height >= player.y) {
-			this.yv *= -1;
-			this.y -= 3;
-		}
+
+	//Collision with paddles
+	if (this.boundingBox.isColliding(player)) {
+		this.yv *= -1;
 	}
-	//Collision with enemy
-	if (this.x + this.width > enemy.x && this.x < enemy.x + enemy.width) {
-		if (this.y < enemy.y + enemy.height) {
-			this.yv *= -1;
-			this.y += 3;
-		}
+	if (this.boundingBox.isColliding(enemy)) {
+		this.yv *= -1;
 	}
-	//Collide with other balls
+	//Collide with balls
 	for (var i=0;i<balls.length;i++) {
 		if (balls[i] !== this) {
-			if (this.x + this.width > balls[i].x) {
-				if (this.y + this.height > balls[i].y) {
-					this.yv *= -1;
-					this.y -= 3;
-				}
-			}
-			if (this.x < balls[i].x + balls[i].width) {
-				if (this.y < balls[i].y + balls[i].height) {
-					this.yv *= -1;
-					this.y += 3;
-				}
+			if (this.boundingBox.isColliding(balls[i])) {
+				this.xv *= -1;
+				this.yv *= -1;
 			}
 		}
 	}
 	this.x += this.xv;
 	this.y += this.yv;
-};
-
-Ball.prototype.collidex = function() {
-	this.yv = this.xv * -1;
-};
-Ball.prototype.collidey = function() {
-	this.yv = this.yv * -1;
 };
 
 function drawBalls() {
@@ -80,7 +61,45 @@ function updateBalls() {
 	for (var i=0;i<balls.length;i++) {
 		balls[i].update();
 	}
-}var enemy = new Enemy(2);
+}//boundingbox.js
+
+function BoundingBox(x,y,width,height) {
+	this.x = x;
+	this.y = y;
+	this.width = width;
+	this.height = height;
+}
+
+BoundingBox.prototype.update = function(x,y) {
+	this.x = x;
+	this.y = y;
+};
+
+BoundingBox.prototype.setWidth = function(width) {
+	this.width = width;
+};
+
+BoundingBox.prototype.setHeight = function(height) {
+	this.height = height;
+};
+
+BoundingBox.prototype.isColliding = function(e) {
+	if (e === undefined) return false;
+	if (this.x + this.width > e.boundingBox.x && this.x < e.boundingBox.x + e.boundingBox.width) {
+		if (this.y + this.height > e.boundingBox.y && this.y < e.boundingBox.y + e.boundingBox.height) {
+			return true;
+		}
+	}
+	return false;
+};
+
+BoundingBox.prototype.destroy = function() {
+	//Remove this bounding box?
+	this.x = 0;
+	this.y = 0;
+	this.width = 0;
+	this.height = 0;
+};var enemy = new Enemy(2);
 function Enemy(difficulty) {
 	this.score = 0;
 	this.difficulty = difficulty;
@@ -90,6 +109,7 @@ function Enemy(difficulty) {
 	this.lives = 3;
 	this.width = 150;
 	this.height = 30;
+	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 	this.destination = 400 - (this.width / 2);
 	this.ticks = 0;
 }
@@ -115,6 +135,7 @@ Enemy.prototype.update = function() {
 			this.destination = getClosestBall().x - (this.width/2);
 		}
 	}
+	this.boundingBox.update(this.x,this.y);
 };
 
 //The closest ball in proximity to xy point.
@@ -472,7 +493,9 @@ function Game() {
 }
 
 Game.prototype.start = function() {
-	balls.push(new Ball(250,250,4,4));
+	balls.push(new Ball(250,250,7,7));
+	balls.push(new Ball(350,250,7,7));
+	balls.push(new Ball(750,250,7,7));
 };
 
 /* Game Loop */
@@ -628,6 +651,8 @@ function Player() {
 	this.y = 0;
 	this.speed = 6;
 	this.width = 150;
+	this.height = 30;
+	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 	this.powerup = 0;
 	this.lives = 3;
 	this.health = 100;
@@ -659,6 +684,7 @@ CanvasRenderingContext2D.prototype.strokeCircle = function(x,y,r,color) {
 Player.prototype.update = function() {
 	//this.x = mouse.x - (this.width/2);
 	this.y = 550;
+	this.boundingBox.update(this.x,this.y);
 };
 
 Player.prototype.fire1 = function() {
