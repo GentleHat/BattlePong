@@ -7,7 +7,13 @@ function Ball(x,y,xv,yv) {
 	this.yv = yv;
 	this.width = 20;
 	this.height = 20;
+	this.spawned = false;
+	this.spawn();
 }
+
+Ball.prototype.spawn = function() {
+	ctx.fillRect();
+};
 
 Ball.prototype.draw = function() {
 	ctx.fillStyle = "#F0F";
@@ -24,7 +30,7 @@ Ball.prototype.move = function() {
 	if (this.y + this.yv < 0 || this.y + this.height + this.yv > 600) this.yv *= -1;
 	//Collision with player
 	if (this.x + this.width > player.x && this.x < player.x + player.width) {
-		if (this.y + this.height > player.y) {
+		if (this.y + this.height >= player.y) {
 			this.yv *= -1;
 			this.y -= 3;
 		}
@@ -39,7 +45,18 @@ Ball.prototype.move = function() {
 	//Collide with other balls
 	for (var i=0;i<balls.length;i++) {
 		if (balls[i] !== this) {
-						
+			if (this.x + this.width > balls[i].x) {
+				if (this.y + this.height > balls[i].y) {
+					this.yv *= -1;
+					this.y -= 3;
+				}
+			}
+			if (this.x < balls[i].x + balls[i].width) {
+				if (this.y < balls[i].y + balls[i].height) {
+					this.yv *= -1;
+					this.y += 3;
+				}
+			}
 		}
 	}
 	this.x += this.xv;

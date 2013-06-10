@@ -26,10 +26,14 @@ $(window).load(function() {
 
 
 function Game() {
-	this.started = true;
+	this.ingame = true;
+	this.menu = new Menu();
 	this.gameover = false;
-	this.currentWave = 1;
-	this.level = new Level(0,0);
+	this.currentLevel = 0;
+	this.levels = [];
+	for (var i=0;i<10;i++) {
+		this.levels[i] = new Level(i);
+	}
 	fireworks.push(new Firework(50,50,400,400));
 	this.start();
 }
@@ -43,20 +47,19 @@ Game.prototype.start = function() {
 var frameTime = 0;
 function loop()
 {
-
-	if (getCurrentMs() - frameTime > 0.018) {
+	if (getCurrentMs() - frameTime > 0.030) {
 		frameTime = getCurrentMs();
 		draw();
 		update();
 		loop();
 	}
-	else setTimeout('loop()', 18);
+	else setTimeout('loop()', 30);
 }
 
 function draw() {
-	if (game.started) {
-		renderLevel(game.level);
-		screen.scroll();
+	if (game.ingame) {
+		ctx.fillStyle = "#000";
+		ctx.fillRect(0,0,800,600);
 		for (var i=0;i<entities.length;i++) {
 			entities[i].render();
 		}
@@ -66,14 +69,19 @@ function draw() {
 		drawFireworks();
 		drawParticles();
 	}
+	else {
+		if (game.menu !== null)
+			game.menu.draw();
+	}
 }
 
 function update() {
-	if (!game.gameover && game.started) {
+	if (!game.gameover) {
 		updateBalls();
 		enemy.update();
 		player.update();
 	}
+	handleInteractions();
 }
 
 

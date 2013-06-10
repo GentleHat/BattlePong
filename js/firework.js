@@ -105,7 +105,7 @@ Firework.prototype.update = function( index ) {
 			}
 		}
 	}}
-}
+};
 
 // draw firework
 Firework.prototype.draw = function() {
@@ -115,13 +115,12 @@ Firework.prototype.draw = function() {
 	ctx.lineTo( this.x, this.y );
 	ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, ' + this.brightness + '%)';
 	ctx.stroke();
-	
 	ctx.beginPath();
 	// draw the target for this firework with a pulsing circle
 	ctx.arc( this.tx, this.ty, this.targetRadius, 0, Math.PI * 2 );
 	ctx.stroke();
 
-}
+};
 
 // create particle
 function Particle( x, y ) {
