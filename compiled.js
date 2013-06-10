@@ -27,26 +27,38 @@ Ball.prototype.update = function() {
 };
 
 Ball.prototype.move = function() {
+	var changex = this.xv;
+	var changey = this.yv;
+
+	this.x += changex;
+	this.y += changey;
 	//Collision with walls
 	if (this.x + this.xv < 0 || this.x + this.width + this.xv > 800) this.xv *= -1;
 	if (this.y + this.yv < 0 || this.y + this.height + this.yv > 600) this.yv *= -1;
 
 	//Collision with paddles
-	if (this.boundingBox.isColliding(player)) {
-		this.yv *= -1;
+	if (this.yv > 0) {
+		if (this.boundingBox.isColliding(player)) {
+			this.yv *= -1;
+		}
 	}
-	if (this.boundingBox.isColliding(enemy)) {
-		this.yv *= -1;
+	if (this.yv < 0) {
+		if (this.boundingBox.isColliding(enemy)) {
+			this.yv *= -1;
+		}
 	}
+	
 	//Collide with balls
 	for (var i=0;i<balls.length;i++) {
 		if (balls[i] !== this) {
-			if (this.boundingBox.isColliding(balls[i])) {
+			if (this.boundingBox.isCollidingX(balls[i])) {
 				this.xv *= -1;
 				this.yv *= -1;
 			}
 		}
 	}
+	this.x -= changex;
+	this.y -= changey;
 	this.x += this.xv;
 	this.y += this.yv;
 };
@@ -493,9 +505,10 @@ function Game() {
 }
 
 Game.prototype.start = function() {
-	balls.push(new Ball(250,250,7,7));
-	balls.push(new Ball(350,250,7,7));
-	balls.push(new Ball(750,250,7,7));
+	balls.push(new Ball(250,250,6,6));
+	balls.push(new Ball(350,250,6,6));
+	balls.push(new Ball(750,250,6,6));
+
 };
 
 /* Game Loop */

@@ -39,9 +39,10 @@ function Game() {
 }
 
 Game.prototype.start = function() {
-	balls.push(new Ball(250,250,7,7));
-	balls.push(new Ball(350,250,7,7));
-	balls.push(new Ball(750,250,7,7));
+	balls.push(new Ball(250,250,6,6));
+	balls.push(new Ball(350,250,6,6));
+	balls.push(new Ball(750,250,6,6));
+
 };
 
 /* Game Loop */
