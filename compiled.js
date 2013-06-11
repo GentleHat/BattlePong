@@ -70,7 +70,8 @@ Ball.prototype.move = function() {
 	if (this.yv > 0) {
 		if (this.boundingBox.isColliding(player)) {
 			this.yv *= -1;
-			this.xv = 8 * ((this.x-(player.x+player.width/2))/player.width);
+			//Change ball angle based on position it hit the paddle? Not sure if want to use.
+			this.xv = 12 * ((this.x-(player.x+player.width/2))/player.width); 
 			if (player.pushing) {
 				this.yv *= 1.5;
 				if (Math.abs(this.xv) > 4) this.evenY();
@@ -385,7 +386,7 @@ function getClosestBall(x,y) { //TODO: This returns null if there's no balls in 
 			}
 		}
 	}
-	if (theBall === null) theBall = new Ball(0,0,0,0);
+	if (theBall === null) theBall = new Ball(350,0,0,0);
 	return theBall;
 }
 
@@ -1215,6 +1216,13 @@ UI.prototype.draw = function() {
 	for (var i=0;i<player.lives;i++) {
 		ctx.fillStyle = "#FFF";
 		ctx.fillRect(50, 550+(i*10), 30, 08);
+	}
+
+	ctx.fillStyle = "#FFF";
+	ctx.fillText("Enemy", 248, 540);
+	for (var i=0;i<player.lives;i++) {
+		ctx.fillStyle = "#FFF";
+		ctx.fillRect(250, 550+(i*10), 30, 08);
 	}
 };
 

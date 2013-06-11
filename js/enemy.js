@@ -115,7 +115,7 @@ function getClosestBall(x,y) { //TODO: This returns null if there's no balls in 
 			}
 		}
 	}
-	if (theBall === null) theBall = new Ball(0,0,0,0);
+	if (theBall === null) theBall = new Ball(350,0,0,0);
 	return theBall;
 }
 
