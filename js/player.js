@@ -1,7 +1,7 @@
 var player = new Player();
 function Player() {
 	this.score = 0;
-	this.x = 0;
+	this.x = 275;
 	this.y = 530;
 	this.speed = 6;
 	this.width = 150;

@@ -2,7 +2,7 @@ var enemy = new Enemy(2);
 function Enemy(difficulty) {
 	this.score = 0;
 	this.difficulty = difficulty;
-	this.x = 400;
+	this.x = 275;
 	this.y = 40;
 	this.powerup = 0;
 	this.lives = 3;
@@ -25,10 +25,10 @@ Enemy.prototype.draw = function() {
 	var eye2x = -4 + (this.x - (sight.x * -1)) / 120;
 
 	ctx.strokeCircle(this.x+20,this.y+18,10,"#000");
-	ctx.fillCircle(this.x+20+eye1x,this.y+20, 7, "#000");
+	ctx.fillCircle(this.x+20+eye1x,this.y+20, 4, "#000");
 
 	ctx.strokeCircle(this.x+130,this.y+18,10,"#000");
-	ctx.fillCircle(this.x+130+eye2x,this.y+20, 7, "#000");
+	ctx.fillCircle(this.x+130+eye2x,this.y+20, 4, "#000");
 	//Mouth 
 	//TODO: Change mouth expression based on game state
 	ctx.fillStyle = "#333"
@@ -37,8 +37,8 @@ Enemy.prototype.draw = function() {
 
 Enemy.prototype.update = function() {
 	this.ticks++;
-	if (this.x < this.destination) this.x += this.speed;
-	if (this.x > this.destination) this.x -= this.speed;
+	this.x += (this.destination - this.x) * 0.1;
+	
 	if (this.difficulty == 1) {
 		if (this.ticks > 90) {
 			this.ticks = 0;
@@ -98,7 +98,7 @@ Enemy.prototype.pushUp = function() {
 };
 
 //The closest ball in proximity to xy point.
-function getClosestBall(x,y) {
+function getClosestBall(x,y) { //TODO: This returns null if there's no balls in the array
 	var theBall = null;
 	for (var i=0;i<balls.length;i++) {
 		if (balls[i] instanceof Ball) {

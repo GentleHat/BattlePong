@@ -36,6 +36,7 @@ Ball.prototype.draw = function() {
 	for (var i=0;i<this.coordinates.length;i++) {
 		var alpha = (3 - i) * 0.12;
 		hue = 249;
+		if (this.item !== null) hue = 150;
 		ctx.fillStyle = 'hsla(' + hue + ', 100%, ' + 90 + '%, ' + alpha + ')';
 		ctx.fillCircle(this.coordinates[i][0], this.coordinates[i][1], 10,10);
 		ctx.fillCircle(this.coordinates[i][0]-this.xv/2, this.coordinates[i][1]-this.yv/2, 10,10);
@@ -47,6 +48,10 @@ Ball.prototype.update = function() {
 	this.move();
 	this.boundingBox.update(this.x-(this.width/3),this.y-(this.height/3));
 };
+
+Ball.prototype.evenY = function() {
+	this.xv *= 0.9;
+}
 
 Ball.prototype.move = function() {
 	var changex = this.xv;
@@ -61,14 +66,21 @@ Ball.prototype.move = function() {
 	if (this.yv > 0) {
 		if (this.boundingBox.isColliding(player)) {
 			this.yv *= -1;
-			if (player.pushing) this.yv *= 1.5;
+			if (player.pushing) {
+				this.yv *= 1.5;
+				if (Math.abs(this.xv) > 4) this.evenY();
+			}
 		}
 	}
 	//Collision with enemy
 	if (this.yv < 0) {
 		if (this.boundingBox.isColliding(enemy) && this.y > 25) {
 			this.yv *= -1;
-			if (enemy.pushing) this.yv *= 1.5;
+			if (enemy.pushing) {
+				this.yv *= 1.5;
+				if (Math.abs(this.xv) > 4) this.evenY();
+				createParticles(this.x,this.y);
+			}
 		}
 	}
 	//Collision with player
@@ -95,6 +107,15 @@ Ball.prototype.move = function() {
 	this.y -= changey;
 	this.x += this.xv;
 	this.y += this.yv;
+
+	if (this.y > canvas.height)  {
+		player.lives--;
+		this.destroy();
+	}
+	else if (this.y < 0) {
+		enemy.lives--;
+		this.destroy();
+	}
 };
 
 Ball.prototype.destroy = function() {

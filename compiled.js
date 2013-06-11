@@ -36,6 +36,7 @@ Ball.prototype.draw = function() {
 	for (var i=0;i<this.coordinates.length;i++) {
 		var alpha = (3 - i) * 0.12;
 		hue = 249;
+		if (this.item !== null) hue = 150;
 		ctx.fillStyle = 'hsla(' + hue + ', 100%, ' + 90 + '%, ' + alpha + ')';
 		ctx.fillCircle(this.coordinates[i][0], this.coordinates[i][1], 10,10);
 		ctx.fillCircle(this.coordinates[i][0]-this.xv/2, this.coordinates[i][1]-this.yv/2, 10,10);
@@ -47,6 +48,10 @@ Ball.prototype.update = function() {
 	this.move();
 	this.boundingBox.update(this.x-(this.width/3),this.y-(this.height/3));
 };
+
+Ball.prototype.evenY = function() {
+	this.xv *= 0.9;
+}
 
 Ball.prototype.move = function() {
 	var changex = this.xv;
@@ -61,14 +66,21 @@ Ball.prototype.move = function() {
 	if (this.yv > 0) {
 		if (this.boundingBox.isColliding(player)) {
 			this.yv *= -1;
-			if (player.pushing) this.yv *= 1.5;
+			if (player.pushing) {
+				this.yv *= 1.5;
+				if (Math.abs(this.xv) > 4) this.evenY();
+			}
 		}
 	}
 	//Collision with enemy
 	if (this.yv < 0) {
 		if (this.boundingBox.isColliding(enemy) && this.y > 25) {
 			this.yv *= -1;
-			if (enemy.pushing) this.yv *= 1.5;
+			if (enemy.pushing) {
+				this.yv *= 1.5;
+				if (Math.abs(this.xv) > 4) this.evenY();
+				createParticles(this.x,this.y);
+			}
 		}
 	}
 	//Collision with player
@@ -95,6 +107,15 @@ Ball.prototype.move = function() {
 	this.y -= changey;
 	this.x += this.xv;
 	this.y += this.yv;
+
+	if (this.y > canvas.height)  {
+		player.lives--;
+		this.destroy();
+	}
+	else if (this.y < 0) {
+		enemy.lives--;
+		this.destroy();
+	}
 };
 
 Ball.prototype.destroy = function() {
@@ -129,7 +150,7 @@ for (var i=0;i<14;i++) {
 function Block(x,y,owner) {
 	this.x = x;
 	this.y = y;
-	this.width = 50;
+	this.width = 100;
 	this.height = 20;
 	this.health = 10;
 	this.owner = owner;
@@ -163,7 +184,6 @@ Block.prototype.update = function() {
 Block.prototype.damage = function() {
 	this.health -= 1;
 	if (this.health <= 0) this.destroy();
-	console.log(this.health);
 };
 
 Block.prototype.destroy = function() {
@@ -229,7 +249,7 @@ BoundingBox.prototype.destroy = function() {
 function Enemy(difficulty) {
 	this.score = 0;
 	this.difficulty = difficulty;
-	this.x = 400;
+	this.x = 275;
 	this.y = 40;
 	this.powerup = 0;
 	this.lives = 3;
@@ -252,10 +272,10 @@ Enemy.prototype.draw = function() {
 	var eye2x = -4 + (this.x - (sight.x * -1)) / 120;
 
 	ctx.strokeCircle(this.x+20,this.y+18,10,"#000");
-	ctx.fillCircle(this.x+20+eye1x,this.y+20, 7, "#000");
+	ctx.fillCircle(this.x+20+eye1x,this.y+20, 4, "#000");
 
 	ctx.strokeCircle(this.x+130,this.y+18,10,"#000");
-	ctx.fillCircle(this.x+130+eye2x,this.y+20, 7, "#000");
+	ctx.fillCircle(this.x+130+eye2x,this.y+20, 4, "#000");
 	//Mouth 
 	//TODO: Change mouth expression based on game state
 	ctx.fillStyle = "#333"
@@ -264,8 +284,8 @@ Enemy.prototype.draw = function() {
 
 Enemy.prototype.update = function() {
 	this.ticks++;
-	if (this.x < this.destination) this.x += this.speed;
-	if (this.x > this.destination) this.x -= this.speed;
+	this.x += (this.destination - this.x) * 0.1;
+	
 	if (this.difficulty == 1) {
 		if (this.ticks > 90) {
 			this.ticks = 0;
@@ -325,7 +345,7 @@ Enemy.prototype.pushUp = function() {
 };
 
 //The closest ball in proximity to xy point.
-function getClosestBall(x,y) {
+function getClosestBall(x,y) { //TODO: This returns null if there's no balls in the array
 	var theBall = null;
 	for (var i=0;i<balls.length;i++) {
 		if (balls[i] instanceof Ball) {
@@ -451,17 +471,29 @@ Firework.prototype.update = function( index ) {
 		this.x += vx;
 		this.y += vy;
 	}
-	//TODO: Collision detection
+	//TODO: Collide with other fireworks
 	if (this.distanceTraveled > 40) {
-	for (var i=0;i<fireworks.length;i++) {
-		if (fireworks[i] == this) continue;
-			if (fireworks[i].x > this.x - 25 && fireworks[i].x < this.x + 25) {
-			if (fireworks[i].y > this.y - 25 && fireworks[i].y < this.y + 25) {
-				createParticles( this.x, this.y );
-				fireworks.splice( index, 1 );
+		for (var i=0;i<fireworks.length;i++) {
+			if (fireworks[i] == this) continue;
+				if (fireworks[i].x > this.x - 25 && fireworks[i].x < this.x + 25) {
+				if (fireworks[i].y > this.y - 25 && fireworks[i].y < this.y + 25) {
+					createParticles( this.x, this.y );
+					fireworks.splice( index, 1 );
+				}
 			}
 		}
-	}}
+		for (var i=0;i<fireworks.length;i++) {
+			if (fireworks[i] == this) continue;
+				if (fireworks[i].x > this.x - 25 && fireworks[i].x < this.x + 25) {
+				if (fireworks[i].y > this.y - 25 && fireworks[i].y < this.y + 25) {
+					createParticles( this.x, this.y );
+					fireworks.splice( index, 1 );
+				}
+			}
+		}
+	}
+
+
 }
 
 // draw firework
@@ -892,10 +924,13 @@ function Option(title, func) {
 
 Option.prototype.execute = function() {
 	eval(this.func);
-};var player = new Player();
+};
+function createParticles2() {
+
+}var player = new Player();
 function Player() {
 	this.score = 0;
-	this.x = 0;
+	this.x = 275;
 	this.y = 530;
 	this.speed = 6;
 	this.width = 150;

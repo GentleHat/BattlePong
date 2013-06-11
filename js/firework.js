@@ -94,17 +94,29 @@ Firework.prototype.update = function( index ) {
 		this.x += vx;
 		this.y += vy;
 	}
-	//TODO: Collision detection
+	//TODO: Collide with other fireworks
 	if (this.distanceTraveled > 40) {
-	for (var i=0;i<fireworks.length;i++) {
-		if (fireworks[i] == this) continue;
-			if (fireworks[i].x > this.x - 25 && fireworks[i].x < this.x + 25) {
-			if (fireworks[i].y > this.y - 25 && fireworks[i].y < this.y + 25) {
-				createParticles( this.x, this.y );
-				fireworks.splice( index, 1 );
+		for (var i=0;i<fireworks.length;i++) {
+			if (fireworks[i] == this) continue;
+				if (fireworks[i].x > this.x - 25 && fireworks[i].x < this.x + 25) {
+				if (fireworks[i].y > this.y - 25 && fireworks[i].y < this.y + 25) {
+					createParticles( this.x, this.y );
+					fireworks.splice( index, 1 );
+				}
 			}
 		}
-	}}
+		for (var i=0;i<fireworks.length;i++) {
+			if (fireworks[i] == this) continue;
+				if (fireworks[i].x > this.x - 25 && fireworks[i].x < this.x + 25) {
+				if (fireworks[i].y > this.y - 25 && fireworks[i].y < this.y + 25) {
+					createParticles( this.x, this.y );
+					fireworks.splice( index, 1 );
+				}
+			}
+		}
+	}
+
+
 }
 
 // draw firework

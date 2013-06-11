@@ -10,7 +10,7 @@ for (var i=0;i<14;i++) {
 function Block(x,y,owner) {
 	this.x = x;
 	this.y = y;
-	this.width = 50;
+	this.width = 100;
 	this.height = 20;
 	this.health = 10;
 	this.owner = owner;
@@ -44,7 +44,6 @@ Block.prototype.update = function() {
 Block.prototype.damage = function() {
 	this.health -= 1;
 	if (this.health <= 0) this.destroy();
-	console.log(this.health);
 };
 
 Block.prototype.destroy = function() {
