@@ -48,7 +48,7 @@ $(window).load(function() {
 	});
 	//Mouse Cick
 	$("#canvas").click(function(e){
-		
+		fireworks.push(new Firework(player.x,player.y,player.x,player.y-400));
 	});
 });
 

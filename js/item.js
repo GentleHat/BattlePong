@@ -9,6 +9,7 @@ function Item(x,y,width,height) {
 	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 	this.xv = 0;
 	this.yv = 0;
+	this.type = "";
 	this.pickedUp = false;
 }
 
@@ -27,6 +28,12 @@ Item.prototype.update = function() {
 	this.x += this.xv;
 	this.y += this.yv;
 	this.boundingBox.update(this.x,this.y);
+};
+
+Item.prototype.use = function() {
+	if (this.type == "firework") {
+		
+	}
 };
 
 function drawItems() {

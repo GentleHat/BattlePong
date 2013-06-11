@@ -115,23 +115,22 @@ Firework.prototype.update = function( index ) {
 			}
 		}
 	}
-
-
-}
+};
 
 // draw firework
 Firework.prototype.draw = function() {
 	ctx.beginPath();
+	ctx.lineWidth = 3;
 	// move to the last tracked coordinate in the set, then draw a line to the current x and y
 	ctx.moveTo( this.coordinates[ this.coordinates.length - 1][ 0 ], this.coordinates[ this.coordinates.length - 1][ 1 ] );
 	ctx.lineTo( this.x, this.y );
 	ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, ' + this.brightness + '%)';
 	ctx.stroke();
-	ctx.beginPath();
+	//ctx.beginPath();
 	// draw the target for this firework with a pulsing circle
-	ctx.arc( this.tx, this.ty, this.targetRadius, 0, Math.PI * 2 );
-	ctx.stroke();
-
+	//ctx.arc( this.tx, this.ty, this.targetRadius, 0, Math.PI * 2 );
+	//ctx.stroke();
+	ctx.lineWidth = 1;
 };
 
 // create particle
@@ -213,7 +212,7 @@ function drawFireworks() {
 function drawParticles() {
 	for (var i=0;i<particles.length;i++) {
 		particles[i].draw();
-		particles[i].update();
+		particles[i].update(i);
 	}
 }
 

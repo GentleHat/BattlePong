@@ -2,7 +2,7 @@ var player = new Player();
 function Player() {
 	this.score = 0;
 	this.x = 275;
-	this.y = 530;
+	this.y = 430;
 	this.speed = 6;
 	this.width = 150;
 	this.height = 30;
@@ -18,7 +18,9 @@ function Player() {
 
 Player.prototype.draw = function() {
 	ctx.fillStyle = '#FFF';
-	ctx.fillRect(this.x,this.y, this.width,30);
+	ctx.fillRect(this.x,this.y, this.width,this.height);
+	ctx.strokeStyle = "#CCC";
+	ctx.strokeRect(this.x,this.y,this.width,this.height);
 	//Eyes
 	var sight = getClosestBall(this.x+20,this.y+13);
 	var eye1x = -4 + (this.x - (sight.x * -1)) / 120; //Eye offsets based on closest ball position
@@ -75,7 +77,7 @@ Player.prototype.push = function() {
 
 Player.prototype.pushUp = function() {
 	var self = this;
-	if (this.y < 490) {
+	if (this.y < 390) {
 		setTimeout(function () {
 			self.pushing = false;
 		}, 5);
@@ -87,7 +89,7 @@ Player.prototype.pushUp = function() {
 		}, 5);
 		return;
 	}
-	else if (this.y < 530) {
+	else if (this.y < 430) {
 		this.y += 1;
 		setTimeout(function () {
 			self.pushUp();

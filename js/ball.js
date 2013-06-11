@@ -9,6 +9,7 @@ function Ball(x,y,xv,yv) {
 	this.height = 18;
 	this.spawned = false;
 	this.item = null;
+	this.charged = false;
 	this.particleTicks = 0;
 	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 	this.coordinates = [];
@@ -51,7 +52,7 @@ Ball.prototype.update = function() {
 
 Ball.prototype.evenY = function() {
 	this.xv *= 0.9;
-}
+};
 
 Ball.prototype.move = function() {
 	var changex = this.xv;
@@ -60,16 +61,21 @@ Ball.prototype.move = function() {
 	this.x += changex;
 	this.y += changey;
 	//Collision with walls
-	if (this.x + this.xv < 0 || this.x + this.width + this.xv > canvas.width) this.xv *= -1;
+	if (this.x + this.xv < 0 || this.x + this.width + this.xv > canvas.width) {
+		this.xv *= -1;
+		this.onCollision();
+	}
 
 	//Collision with paddles
 	if (this.yv > 0) {
 		if (this.boundingBox.isColliding(player)) {
 			this.yv *= -1;
+			this.xv = 8 * ((this.x-(player.x+player.width/2))/player.width);
 			if (player.pushing) {
 				this.yv *= 1.5;
 				if (Math.abs(this.xv) > 4) this.evenY();
 			}
+			this.onCollision();
 		}
 	}
 	//Collision with enemy
@@ -81,9 +87,10 @@ Ball.prototype.move = function() {
 				if (Math.abs(this.xv) > 4) this.evenY();
 				createParticles(this.x,this.y);
 			}
+			this.onCollision();
 		}
 	}
-	//Collision with player
+	//Collision with items
 	for (var i=0;i<items.length;i++) {
 		if (this.boundingBox.isColliding(items[i])) {
 			this.item = items[i];
@@ -94,6 +101,7 @@ Ball.prototype.move = function() {
 		if (this.boundingBox.isColliding(blocks[i])) {
 			blocks[i].damage();
 			this.yv *= -1;
+			this.onCollision();
 			break;
 		}
 	}
@@ -116,6 +124,10 @@ Ball.prototype.move = function() {
 		enemy.lives--;
 		this.destroy();
 	}
+};
+
+Ball.prototype.onCollision = function() {
+	knocksound.play();
 };
 
 Ball.prototype.destroy = function() {

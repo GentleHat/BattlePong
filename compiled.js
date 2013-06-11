@@ -9,6 +9,7 @@ function Ball(x,y,xv,yv) {
 	this.height = 18;
 	this.spawned = false;
 	this.item = null;
+	this.charged = false;
 	this.particleTicks = 0;
 	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 	this.coordinates = [];
@@ -51,7 +52,7 @@ Ball.prototype.update = function() {
 
 Ball.prototype.evenY = function() {
 	this.xv *= 0.9;
-}
+};
 
 Ball.prototype.move = function() {
 	var changex = this.xv;
@@ -60,16 +61,21 @@ Ball.prototype.move = function() {
 	this.x += changex;
 	this.y += changey;
 	//Collision with walls
-	if (this.x + this.xv < 0 || this.x + this.width + this.xv > canvas.width) this.xv *= -1;
+	if (this.x + this.xv < 0 || this.x + this.width + this.xv > canvas.width) {
+		this.xv *= -1;
+		this.onCollision();
+	}
 
 	//Collision with paddles
 	if (this.yv > 0) {
 		if (this.boundingBox.isColliding(player)) {
 			this.yv *= -1;
+			this.xv = 8 * ((this.x-(player.x+player.width/2))/player.width);
 			if (player.pushing) {
 				this.yv *= 1.5;
 				if (Math.abs(this.xv) > 4) this.evenY();
 			}
+			this.onCollision();
 		}
 	}
 	//Collision with enemy
@@ -81,9 +87,10 @@ Ball.prototype.move = function() {
 				if (Math.abs(this.xv) > 4) this.evenY();
 				createParticles(this.x,this.y);
 			}
+			this.onCollision();
 		}
 	}
-	//Collision with player
+	//Collision with items
 	for (var i=0;i<items.length;i++) {
 		if (this.boundingBox.isColliding(items[i])) {
 			this.item = items[i];
@@ -94,6 +101,7 @@ Ball.prototype.move = function() {
 		if (this.boundingBox.isColliding(blocks[i])) {
 			blocks[i].damage();
 			this.yv *= -1;
+			this.onCollision();
 			break;
 		}
 	}
@@ -116,6 +124,10 @@ Ball.prototype.move = function() {
 		enemy.lives--;
 		this.destroy();
 	}
+};
+
+Ball.prototype.onCollision = function() {
+	knocksound.play();
 };
 
 Ball.prototype.destroy = function() {
@@ -141,7 +153,7 @@ function updateBalls() {
 }var blocks = [];
 
 for (var i=0;i<14;i++) {
-	blocks.push(new Block(i*50,580));
+	blocks.push(new Block(i*50,480));
 }
 for (var i=0;i<14;i++) {
 	blocks.push(new Block(i*50,0,player));
@@ -150,7 +162,7 @@ for (var i=0;i<14;i++) {
 function Block(x,y,owner) {
 	this.x = x;
 	this.y = y;
-	this.width = 100;
+	this.width = 50;
 	this.height = 20;
 	this.health = 10;
 	this.owner = owner;
@@ -245,6 +257,17 @@ BoundingBox.prototype.destroy = function() {
 	this.y = 0;
 	this.width = 0;
 	this.height = 0;
+};function Bullet(sx,sy,dx,dy) {
+
+
+}
+
+Bullet.prototype.draw = function() {
+
+};
+
+Bullet.prototype.update = function() {
+
 };var enemy = new Enemy(2);
 function Enemy(difficulty) {
 	this.score = 0;
@@ -266,6 +289,8 @@ function Enemy(difficulty) {
 Enemy.prototype.draw = function() {
 	ctx.fillStyle = '#FFF';
 	ctx.fillRect(this.x,this.y, this.width,this.height);
+	ctx.strokeStyle = "#CCC";
+	ctx.strokeRect(this.x,this.y,this.width,this.height);
 
 	var sight = getClosestBall(this.x+(this.width/2),this.y);
 	var eye1x = -4 + (this.x - (sight.x * -1)) / 120; //Eye offsets based on closest ball position
@@ -336,7 +361,7 @@ Enemy.prototype.pushUp = function() {
 		}, 5);
 		return;
 	}
-	else if (this.y > 25) {
+	else if (this.y > 40) {
 		this.y -= 1;
 		setTimeout(function () {
 			self.pushUp();
@@ -360,6 +385,7 @@ function getClosestBall(x,y) { //TODO: This returns null if there's no balls in 
 			}
 		}
 	}
+	if (theBall === null) theBall = new Ball(0,0,0,0);
 	return theBall;
 }
 
@@ -492,23 +518,22 @@ Firework.prototype.update = function( index ) {
 			}
 		}
 	}
-
-
-}
+};
 
 // draw firework
 Firework.prototype.draw = function() {
 	ctx.beginPath();
+	ctx.lineWidth = 3;
 	// move to the last tracked coordinate in the set, then draw a line to the current x and y
 	ctx.moveTo( this.coordinates[ this.coordinates.length - 1][ 0 ], this.coordinates[ this.coordinates.length - 1][ 1 ] );
 	ctx.lineTo( this.x, this.y );
 	ctx.strokeStyle = 'hsl(' + this.hue + ', 100%, ' + this.brightness + '%)';
 	ctx.stroke();
-	ctx.beginPath();
+	//ctx.beginPath();
 	// draw the target for this firework with a pulsing circle
-	ctx.arc( this.tx, this.ty, this.targetRadius, 0, Math.PI * 2 );
-	ctx.stroke();
-
+	//ctx.arc( this.tx, this.ty, this.targetRadius, 0, Math.PI * 2 );
+	//ctx.stroke();
+	ctx.lineWidth = 1;
 };
 
 // create particle
@@ -590,7 +615,7 @@ function drawFireworks() {
 function drawParticles() {
 	for (var i=0;i<particles.length;i++) {
 		particles[i].draw();
-		particles[i].update();
+		particles[i].update(i);
 	}
 }
 
@@ -687,7 +712,7 @@ var entities = [];
 $(window).load(function() {
 	canvas = document.getElementById('canvas');
 	canvas.height = 600;
-	canvas.width = 700;
+	canvas.width = 600;
 	//check whether browser supports getting canvas context
 	if (canvas && canvas.getContext) {
 		ctx = canvas.getContext('2d');
@@ -714,6 +739,7 @@ function Game() {
 }
 
 Game.prototype.start = function() {
+	balls.push(new Ball(-500,-500,0,0));
 	balls.push(new Ball(250,250,4,4));
 	balls.push(new Ball(350,250,4,4));
 };
@@ -745,6 +771,7 @@ function draw() {
 		drawFireworks();
 		drawParticles();
 		drawBlocks();
+		ui.draw();
 	}
 	else {
 		if (game.menu !== null)
@@ -814,7 +841,7 @@ $(window).load(function() {
 	});
 	//Mouse Cick
 	$("#canvas").click(function(e){
-		
+		fireworks.push(new Firework(player.x,player.y,player.x,player.y-400));
 	});
 });
 
@@ -832,6 +859,7 @@ function Item(x,y,width,height) {
 	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 	this.xv = 0;
 	this.yv = 0;
+	this.type = "";
 	this.pickedUp = false;
 }
 
@@ -850,6 +878,12 @@ Item.prototype.update = function() {
 	this.x += this.xv;
 	this.y += this.yv;
 	this.boundingBox.update(this.x,this.y);
+};
+
+Item.prototype.use = function() {
+	if (this.type == "firework") {
+		
+	}
 };
 
 function drawItems() {
@@ -925,13 +959,116 @@ function Option(title, func) {
 Option.prototype.execute = function() {
 	eval(this.func);
 };
-function createParticles2() {
+function createSmoke(x,y) {
+	var particleCount = 55;
+	while( particleCount-- ) {
+		particles.push( new SmokeParticle( x, y ) );
+	}
+}
 
-}var player = new Player();
+function SmokeParticle(x,y) {
+	this.x = x;
+	this.y = y;
+	this.coordinates = [];
+	this.coordinateCount = 5;
+	this.angle = random( 0, Math.PI * 2 );
+	this.speed = random( 0, 2 );
+	this.friction = 0.95;
+	while (this.coordinateCount--) {
+		this.coordinates.push([this.x,this.y]);
+	}
+	this.alpha = 40;
+	this.decay = 0.8;
+
+}
+
+SmokeParticle.prototype.update = function(index) {
+	this.coordinates.pop();
+	// add current coordinates to the start of the array
+	this.coordinates.unshift( [ this.x, this.y ] );
+	this.x += Math.cos( this.angle ) * this.speed;
+	this.y += Math.sin( this.angle ) * this.speed;
+
+	this.alpha *= this.decay;
+	if (this.alpha <= this.decay) {
+		particles.splice( index, 1 );
+	}
+};
+
+SmokeParticle.prototype.draw = function() {
+
+	for (var i=0;i<this.coordinates.length;i++) {
+		var alpha = (3 - i) * 0.12;
+		ctx.fillStyle = 'hsla(' + 3 + ', 29%, ' + 66 + '%, ' + this.alpha + ')';
+	}
+	ctx.beginPath();
+	// move to the last tracked coordinates in the set, then draw a line to the current x and y
+	ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
+	ctx.lineTo( this.x, this.y );
+	ctx.fillStyle = 'hsla(' + 3 + ', 29%, ' + this.alpha + '%, ' + this.alpha + ')';
+
+	ctx.beginPath();
+	ctx.arc(this.x,this.y, 9, 0, 2 * Math.PI, false);
+	ctx.fill();
+};
+
+
+
+/* Dust Particle */
+
+function createDust(x,y) {
+	var particleCount = 55;
+	while( particleCount-- ) {
+		particles.push( new DustParticle( x, y ) );
+	}
+}
+
+function DustParticle(x,y) {
+	this.x = x;
+	this.y = y;
+	this.coordinates = [];
+	this.coordinateCount = 5;
+	this.angle = random( 0, Math.PI * 2 );
+	this.speed = random( 0, 2 );
+	this.friction = 0.95;
+	while (this.coordinateCount--) {
+		this.coordinates.push([this.x,this.y]);
+	}
+	this.alpha = 90;
+	this.decay = 0.8;
+}
+
+DustParticle.prototype.update = function(index) {
+	this.coordinates.pop();
+	// add current coordinates to the start of the array
+	this.coordinates.unshift( [ this.x, this.y ] );
+	this.x += Math.cos( this.angle ) * this.speed * 2;
+	this.y += Math.sin( this.angle ) * this.speed * 0.5;
+
+	this.alpha *= this.decay;
+	if (this.alpha <= this.decay) {
+		particles.splice( index, 1 );
+	}
+};
+
+DustParticle.prototype.draw = function() {
+
+	for (var i=0;i<this.coordinates.length;i++) {
+		var alpha = (3 - i) * 0.12;
+		ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+	}
+	ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+	ctx.beginPath();
+	// move to the last tracked coordinates in the set, then draw a line to the current x and y
+	ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
+	ctx.lineTo( this.x, this.y );
+	ctx.stroke();
+};
+var player = new Player();
 function Player() {
 	this.score = 0;
 	this.x = 275;
-	this.y = 530;
+	this.y = 430;
 	this.speed = 6;
 	this.width = 150;
 	this.height = 30;
@@ -947,7 +1084,9 @@ function Player() {
 
 Player.prototype.draw = function() {
 	ctx.fillStyle = '#FFF';
-	ctx.fillRect(this.x,this.y, this.width,30);
+	ctx.fillRect(this.x,this.y, this.width,this.height);
+	ctx.strokeStyle = "#CCC";
+	ctx.strokeRect(this.x,this.y,this.width,this.height);
 	//Eyes
 	var sight = getClosestBall(this.x+20,this.y+13);
 	var eye1x = -4 + (this.x - (sight.x * -1)) / 120; //Eye offsets based on closest ball position
@@ -1004,7 +1143,7 @@ Player.prototype.push = function() {
 
 Player.prototype.pushUp = function() {
 	var self = this;
-	if (this.y < 490) {
+	if (this.y < 390) {
 		setTimeout(function () {
 			self.pushing = false;
 		}, 5);
@@ -1016,7 +1155,7 @@ Player.prototype.pushUp = function() {
 		}, 5);
 		return;
 	}
-	else if (this.y < 530) {
+	else if (this.y < 430) {
 		this.y += 1;
 		setTimeout(function () {
 			self.pushUp();
@@ -1034,7 +1173,8 @@ function Point(x,y) {
 
 if (AudioFX.supported) {
 	//var shufflesound = AudioFX('sounds/cardshuffle', { formats: ['wav'], pool:2 });
-	var fire1sound = AudioFX('sounds/8_bit_laser', { formats: ['wave'], pool:10});
+	var lasersound = AudioFX('sounds/8_bit_laser', { formats: ['wave'], pool:10});
+	var knocksound = AudioFX('sounds/knock01.wav', { formats: ['wave'], pool:8});
 }//tile.js
 
 var r=0,g=0;b=0;
@@ -1061,4 +1201,23 @@ Tile.prototype.render = function() {
 	ctx.fillStyle="#CCF";
 	ctx.fillStyle = this.color;
 	ctx.fillRect(this.x+screen.xOffset,this.y+screen.yOffset,64,64);
+};
+var ui = new UI();
+
+function UI() {
+}
+
+UI.prototype.draw = function() {
+	ctx.fillStyle = "#111";
+	ctx.fillRect(0,500,700,100);
+	ctx.fillStyle = "#FFF";
+	ctx.fillText("Player", 50, 540);
+	for (var i=0;i<player.lives;i++) {
+		ctx.fillStyle = "#FFF";
+		ctx.fillRect(50, 550+(i*10), 30, 08);
+	}
+};
+
+UI.prototype.update = function() {
+
 };

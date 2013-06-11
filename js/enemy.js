@@ -19,6 +19,8 @@ function Enemy(difficulty) {
 Enemy.prototype.draw = function() {
 	ctx.fillStyle = '#FFF';
 	ctx.fillRect(this.x,this.y, this.width,this.height);
+	ctx.strokeStyle = "#CCC";
+	ctx.strokeRect(this.x,this.y,this.width,this.height);
 
 	var sight = getClosestBall(this.x+(this.width/2),this.y);
 	var eye1x = -4 + (this.x - (sight.x * -1)) / 120; //Eye offsets based on closest ball position
@@ -89,7 +91,7 @@ Enemy.prototype.pushUp = function() {
 		}, 5);
 		return;
 	}
-	else if (this.y > 25) {
+	else if (this.y > 40) {
 		this.y -= 1;
 		setTimeout(function () {
 			self.pushUp();
@@ -113,6 +115,7 @@ function getClosestBall(x,y) { //TODO: This returns null if there's no balls in 
 			}
 		}
 	}
+	if (theBall === null) theBall = new Ball(0,0,0,0);
 	return theBall;
 }
 

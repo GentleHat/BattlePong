@@ -15,7 +15,7 @@ var entities = [];
 $(window).load(function() {
 	canvas = document.getElementById('canvas');
 	canvas.height = 600;
-	canvas.width = 700;
+	canvas.width = 600;
 	//check whether browser supports getting canvas context
 	if (canvas && canvas.getContext) {
 		ctx = canvas.getContext('2d');
@@ -42,6 +42,7 @@ function Game() {
 }
 
 Game.prototype.start = function() {
+	balls.push(new Ball(-500,-500,0,0));
 	balls.push(new Ball(250,250,4,4));
 	balls.push(new Ball(350,250,4,4));
 };
@@ -73,6 +74,7 @@ function draw() {
 		drawFireworks();
 		drawParticles();
 		drawBlocks();
+		ui.draw();
 	}
 	else {
 		if (game.menu !== null)

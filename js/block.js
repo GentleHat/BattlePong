@@ -1,7 +1,7 @@
 var blocks = [];
 
 for (var i=0;i<14;i++) {
-	blocks.push(new Block(i*50,580));
+	blocks.push(new Block(i*50,480));
 }
 for (var i=0;i<14;i++) {
 	blocks.push(new Block(i*50,0,player));
@@ -10,7 +10,7 @@ for (var i=0;i<14;i++) {
 function Block(x,y,owner) {
 	this.x = x;
 	this.y = y;
-	this.width = 100;
+	this.width = 50;
 	this.height = 20;
 	this.health = 10;
 	this.owner = owner;
