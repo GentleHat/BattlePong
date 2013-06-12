@@ -77,6 +77,7 @@ Ball.prototype.move = function() {
 				if (Math.abs(this.xv) > 4) this.evenY();
 			}
 			this.onCollision();
+			createImpact2(this.x,this.y+this.yv);
 		}
 	}
 	//Collision with enemy
@@ -86,9 +87,9 @@ Ball.prototype.move = function() {
 			if (enemy.pushing) {
 				this.yv *= 1.5;
 				if (Math.abs(this.xv) > 4) this.evenY();
-				createParticles(this.x,this.y);
 			}
 			this.onCollision();
+			createImpact1(this.x,this.y-this.yv);
 		}
 	}
 	//Collision with items
@@ -307,6 +308,11 @@ Enemy.prototype.draw = function() {
 	ctx.fillStyle = "#333"
 	ctx.fillRect(this.x+55,this.y+15,40,15);
 };
+
+function drawPete(x,y,width,height) {
+	//TODO: Split enemy drawing into different functions
+	//For multiple different opponents (for splitting into levels)
+}
 
 Enemy.prototype.update = function() {
 	this.ticks++;
@@ -765,12 +771,12 @@ function draw() {
 		for (var i=0;i<entities.length;i++) {
 			entities[i].render();
 		}
-		drawBalls();
-		enemy.draw();
-		player.draw();
+		//drawBalls();
+		drawParticles();
+		//enemy.draw();
+		//player.draw();
 		drawItems();
 		drawFireworks();
-		drawParticles();
 		drawBlocks();
 		ui.draw();
 	}
@@ -855,6 +861,8 @@ var items = [];
 function Item(x,y,width,height) {
 	this.x = x;
 	this.y = y;
+	this.xv = 0;
+	this.yv = 0;
 	this.width = width;
 	this.height = height;
 	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
@@ -865,7 +873,7 @@ function Item(x,y,width,height) {
 }
 
 Item.prototype.spawn = function() {
-
+	
 };
 
 Item.prototype.draw = function() {
@@ -875,15 +883,21 @@ Item.prototype.draw = function() {
 	}
 };
 
+var t = 0;
 Item.prototype.update = function() {
-	this.x += this.xv;
-	this.y += this.yv;
+	this.x += 1;
+	t++;
+	if (t > 3) {
+		this.y += (Math.sin(this.x) * 150) / 100;
+		t = 0;
+	}
+	
 	this.boundingBox.update(this.x,this.y);
 };
 
 Item.prototype.use = function() {
 	if (this.type == "firework") {
-		
+
 	}
 };
 
@@ -1065,7 +1079,108 @@ DustParticle.prototype.draw = function() {
 	ctx.lineTo( this.x, this.y );
 	ctx.stroke();
 };
-var player = new Player();
+
+//Impact 1 - Impact particles that fall down
+function createImpact1(x,y) {
+	var particleCount = 55;
+	while( particleCount-- ) {
+		particles.push( new ImpactParticle1( x, y ) );
+	}
+}
+
+function ImpactParticle1(x,y) {
+	this.x = x;
+	this.y = y;
+	this.coordinates = [];
+	this.coordinateCount = 5;
+	this.angle = random( 0, Math.PI * 2 );
+	this.speed = random( 0, 2 );
+	this.friction = 0.95;
+	while (this.coordinateCount--) {
+		this.coordinates.push([this.x,this.y]);
+	}
+	this.alpha = 90;
+	this.decay = 0.8;
+}
+
+ImpactParticle1.prototype.update = function(index) {
+	this.coordinates.pop();
+	// add current coordinates to the start of the array
+	this.coordinates.unshift( [ this.x, this.y ] );
+	this.x += Math.cos( this.angle ) * this.speed * 2;
+	this.y += Math.sin( this.angle ) * this.speed * 0.5;
+
+	this.alpha *= this.decay;
+	if (this.alpha <= this.decay) {
+		particles.splice( index, 1 );
+	}
+};
+
+ImpactParticle1.prototype.draw = function() {
+
+	for (var i=0;i<this.coordinates.length;i++) {
+		var alpha = (3 - i) * 0.12;
+		ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+	}
+	ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+	ctx.beginPath();
+	// move to the last tracked coordinates in the set, then draw a line to the current x and y
+	ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
+	ctx.lineTo( this.x, this.y );
+	ctx.stroke();
+};
+
+
+//Impact 2 - Impact particles that fall up
+function createImpact2(x,y) {
+	var particleCount = 55;
+	while( particleCount-- ) {
+		particles.push( new ImpactParticle2( x, y ) );
+	}
+}
+
+function ImpactParticle2(x,y) {
+	this.x = x;
+	this.y = y;
+	this.coordinates = [];
+	this.coordinateCount = 5;
+	this.angle = random( 0, Math.PI * 2 );
+	this.speed = random( 0, 2 );
+	this.friction = 0.95;
+	while (this.coordinateCount--) {
+		this.coordinates.push([this.x,this.y]);
+	}
+	this.alpha = 90;
+	this.decay = 0.8;
+}
+
+ImpactParticle2.prototype.update = function(index) {
+	this.coordinates.pop();
+	// add current coordinates to the start of the array
+	this.coordinates.unshift( [ this.x, this.y ] );
+	this.x += Math.cos( this.angle ) * this.speed * 2;
+	this.y += Math.sin( this.angle ) * this.speed * 0.5;
+
+	this.alpha *= this.decay;
+	if (this.alpha <= this.decay) {
+		particles.splice( index, 1 );
+	}
+};
+
+ImpactParticle2.prototype.draw = function() {
+
+	for (var i=0;i<this.coordinates.length;i++) {
+		var alpha = (3 - i) * 0.12;
+		ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+	}
+	ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+	ctx.strokeStyle = "rgba("+222+","+222+","+222+",0)";
+	ctx.beginPath();
+	// move to the last tracked coordinates in the set, then draw a line to the current x and y
+	ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
+	ctx.lineTo( this.x, this.y );
+	ctx.stroke();
+};var player = new Player();
 function Player() {
 	this.score = 0;
 	this.x = 275;

@@ -77,6 +77,7 @@ Ball.prototype.move = function() {
 				if (Math.abs(this.xv) > 4) this.evenY();
 			}
 			this.onCollision();
+			createImpact2(this.x,this.y+this.yv);
 		}
 	}
 	//Collision with enemy
@@ -86,9 +87,9 @@ Ball.prototype.move = function() {
 			if (enemy.pushing) {
 				this.yv *= 1.5;
 				if (Math.abs(this.xv) > 4) this.evenY();
-				createParticles(this.x,this.y);
 			}
 			this.onCollision();
+			createImpact1(this.x,this.y-this.yv);
 		}
 	}
 	//Collision with items

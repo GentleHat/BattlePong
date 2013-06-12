@@ -104,3 +104,105 @@ DustParticle.prototype.draw = function() {
 	ctx.lineTo( this.x, this.y );
 	ctx.stroke();
 };
+
+//Impact 1 - Impact particles that fall down
+function createImpact1(x,y) {
+	var particleCount = 55;
+	while( particleCount-- ) {
+		particles.push( new ImpactParticle1( x, y ) );
+	}
+}
+
+function ImpactParticle1(x,y) {
+	this.x = x;
+	this.y = y;
+	this.coordinates = [];
+	this.coordinateCount = 5;
+	this.angle = random( 0, Math.PI * 2 );
+	this.speed = random( 0, 2 );
+	this.friction = 0.95;
+	while (this.coordinateCount--) {
+		this.coordinates.push([this.x,this.y]);
+	}
+	this.alpha = 90;
+	this.decay = 0.8;
+}
+
+ImpactParticle1.prototype.update = function(index) {
+	this.coordinates.pop();
+	// add current coordinates to the start of the array
+	this.coordinates.unshift( [ this.x, this.y ] );
+	this.x += Math.cos( this.angle ) * this.speed * 2;
+	this.y += Math.sin( this.angle ) * this.speed * 0.5;
+
+	this.alpha *= this.decay;
+	if (this.alpha <= this.decay) {
+		particles.splice( index, 1 );
+	}
+};
+
+ImpactParticle1.prototype.draw = function() {
+
+	for (var i=0;i<this.coordinates.length;i++) {
+		var alpha = (3 - i) * 0.12;
+		ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+	}
+	ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+	ctx.beginPath();
+	// move to the last tracked coordinates in the set, then draw a line to the current x and y
+	ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
+	ctx.lineTo( this.x, this.y );
+	ctx.stroke();
+};
+
+
+//Impact 2 - Impact particles that fall up
+function createImpact2(x,y) {
+	var particleCount = 55;
+	while( particleCount-- ) {
+		particles.push( new ImpactParticle2( x, y ) );
+	}
+}
+
+function ImpactParticle2(x,y) {
+	this.x = x;
+	this.y = y;
+	this.coordinates = [];
+	this.coordinateCount = 5;
+	this.angle = random( 0, Math.PI * 2 );
+	this.speed = random( 0, 2 );
+	this.friction = 0.95;
+	while (this.coordinateCount--) {
+		this.coordinates.push([this.x,this.y]);
+	}
+	this.alpha = 90;
+	this.decay = 0.8;
+}
+
+ImpactParticle2.prototype.update = function(index) {
+	this.coordinates.pop();
+	// add current coordinates to the start of the array
+	this.coordinates.unshift( [ this.x, this.y ] );
+	this.x += Math.cos( this.angle ) * this.speed * 2;
+	this.y += Math.sin( this.angle ) * this.speed * 0.5;
+
+	this.alpha *= this.decay;
+	if (this.alpha <= this.decay) {
+		particles.splice( index, 1 );
+	}
+};
+
+ImpactParticle2.prototype.draw = function() {
+
+	for (var i=0;i<this.coordinates.length;i++) {
+		var alpha = (3 - i) * 0.12;
+		ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+	}
+	ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+	ctx.strokeStyle = "rgba("+222+","+222+","+222+",0)";
+	ctx.beginPath();
+	// move to the last tracked coordinates in the set, then draw a line to the current x and y
+	ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
+	ctx.lineTo( this.x, this.y );
+	ctx.stroke();
+};

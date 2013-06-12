@@ -37,6 +37,11 @@ Enemy.prototype.draw = function() {
 	ctx.fillRect(this.x+55,this.y+15,40,15);
 };
 
+function drawPete(x,y,width,height) {
+	//TODO: Split enemy drawing into different functions
+	//For multiple different opponents (for splitting into levels)
+}
+
 Enemy.prototype.update = function() {
 	this.ticks++;
 	this.x += (this.destination - this.x) * 0.1;
