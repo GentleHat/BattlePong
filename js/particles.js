@@ -118,22 +118,22 @@ function ImpactParticle1(x,y) {
 	this.y = y;
 	this.coordinates = [];
 	this.coordinateCount = 5;
-	this.angle = random( 0, Math.PI * 2 );
-	this.speed = random( 0, 2 );
+	this.angle = random( 4, Math.PI * 4 );
+	this.speed = random( 2, 4 );
 	this.friction = 0.95;
 	while (this.coordinateCount--) {
 		this.coordinates.push([this.x,this.y]);
 	}
-	this.alpha = 90;
-	this.decay = 0.8;
+	this.alpha = 75;
+	this.decay = 0.6;
 }
 
 ImpactParticle1.prototype.update = function(index) {
 	this.coordinates.pop();
 	// add current coordinates to the start of the array
 	this.coordinates.unshift( [ this.x, this.y ] );
-	this.x += Math.cos( this.angle ) * this.speed * 2;
-	this.y += Math.sin( this.angle ) * this.speed * 0.5;
+	this.x += Math.cos( this.angle ) * this.speed * 1;
+	this.y += Math.abs(Math.sin( this.angle ) * this.speed * 0.5)*-1;
 
 	this.alpha *= this.decay;
 	if (this.alpha <= this.decay) {
@@ -144,21 +144,23 @@ ImpactParticle1.prototype.update = function(index) {
 ImpactParticle1.prototype.draw = function() {
 
 	for (var i=0;i<this.coordinates.length;i++) {
-		var alpha = (3 - i) * 0.12;
-		ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+		var alpha = i * 80;
+		ctx.fillStyle = "rgba("+222+","+222+","+222+","+alpha+")";
+		ctx.fillRect(this.coordinates[i][0],this.coordinates[i][1],1,1);
 	}
 	ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
-	ctx.beginPath();
+	ctx.strokeStyle = "rgba("+222+","+222+","+222+",150)";
+	//ctx.beginPath();
 	// move to the last tracked coordinates in the set, then draw a line to the current x and y
-	ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
-	ctx.lineTo( this.x, this.y );
-	ctx.stroke();
+	//ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
+	//ctx.lineTo( this.x, this.y );
+	//ctx.stroke();
 };
 
 
 //Impact 2 - Impact particles that fall up
 function createImpact2(x,y) {
-	var particleCount = 55;
+	var particleCount = 15;
 	while( particleCount-- ) {
 		particles.push( new ImpactParticle2( x, y ) );
 	}
@@ -170,21 +172,21 @@ function ImpactParticle2(x,y) {
 	this.coordinates = [];
 	this.coordinateCount = 5;
 	this.angle = random( 0, Math.PI * 2 );
-	this.speed = random( 0, 2 );
+	this.speed = random( 2, 4 );
 	this.friction = 0.95;
 	while (this.coordinateCount--) {
 		this.coordinates.push([this.x,this.y]);
 	}
-	this.alpha = 90;
-	this.decay = 0.8;
+	this.alpha = 75;
+	this.decay = 0.6;
 }
 
 ImpactParticle2.prototype.update = function(index) {
 	this.coordinates.pop();
 	// add current coordinates to the start of the array
 	this.coordinates.unshift( [ this.x, this.y ] );
-	this.x += Math.cos( this.angle ) * this.speed * 2;
-	this.y += Math.sin( this.angle ) * this.speed * 0.5;
+	this.x += Math.cos( this.angle ) * this.speed * 1;
+	this.y += Math.abs(Math.sin( this.angle ) * this.speed * 0.5)*-1;
 
 	this.alpha *= this.decay;
 	if (this.alpha <= this.decay) {
@@ -195,14 +197,15 @@ ImpactParticle2.prototype.update = function(index) {
 ImpactParticle2.prototype.draw = function() {
 
 	for (var i=0;i<this.coordinates.length;i++) {
-		var alpha = (3 - i) * 0.12;
-		ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+		var alpha = i * 80;
+		ctx.fillStyle = "rgba("+222+","+222+","+222+","+alpha+")";
+		ctx.fillRect(this.coordinates[i][0],this.coordinates[i][1],1,1);
 	}
 	ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
-	ctx.strokeStyle = "rgba("+222+","+222+","+222+",0)";
-	ctx.beginPath();
+	ctx.strokeStyle = "rgba("+222+","+222+","+222+",150)";
+	//ctx.beginPath();
 	// move to the last tracked coordinates in the set, then draw a line to the current x and y
-	ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
-	ctx.lineTo( this.x, this.y );
-	ctx.stroke();
+	//ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
+	//ctx.lineTo( this.x, this.y );
+	//ctx.stroke();
 };

@@ -1,18 +1,22 @@
 
 var items = [];
 
-function Item(x,y,width,height) {
+function Item() {
+	var x = Math.floor(Math.random() * canvas.width) - 30; //Subtract item width to prevent offscreen items
+	x = -30;
+	var y = 150 + (Math.floor(Math.random() * (200)));
 	this.x = x;
 	this.y = y;
 	this.xv = 0;
 	this.yv = 0;
-	this.width = width;
-	this.height = height;
+	this.width = 30;
+	this.height = 30;
 	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 	this.xv = 0;
 	this.yv = 0;
 	this.type = "";
 	this.pickedUp = false;
+	this.sin = -100;
 }
 
 Item.prototype.spawn = function() {
@@ -26,15 +30,12 @@ Item.prototype.draw = function() {
 	}
 };
 
-var t = 0;
 Item.prototype.update = function() {
 	this.x += 1;
-	t++;
-	if (t > 3) {
-		this.y += (Math.sin(this.x) * 150) / 100;
-		t = 0;
-	}
-	
+	this.sin++;
+
+	this.y += Math.sin(this.sin / 90) ;
+	if (this.sin > 100) this.sin = -100;
 	this.boundingBox.update(this.x,this.y);
 };
 

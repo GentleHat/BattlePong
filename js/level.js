@@ -22,7 +22,5 @@ Level.prototype.update = function() {
 };
 
 Level.prototype.spawnItem = function() {
-	var x = Math.floor(Math.random() * canvas.width) - 30; //Subtract item width to prevent offscreen items
-	var y = 100 + (Math.floor(Math.random() * (canvas.height - 200)));
-	items.push(new Item(x,y,30,30));
+	items.push(new Item());
 };

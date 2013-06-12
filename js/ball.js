@@ -71,13 +71,17 @@ Ball.prototype.move = function() {
 		if (this.boundingBox.isColliding(player)) {
 			this.yv *= -1;
 			//Change ball angle based on position it hit the paddle? Not sure if want to use.
-			this.xv = 12 * ((this.x-(player.x+player.width/2))/player.width); 
+			//this.xv = 12 * ((this.x-(player.x+player.width/2))/player.width); 
 			if (player.pushing) {
 				this.yv *= 1.5;
 				if (Math.abs(this.xv) > 4) this.evenY();
+				createImpact2(this.x,this.y+this.yv*2);
+			}
+			else {
+				createImpact2(this.x,this.y+this.yv);
 			}
 			this.onCollision();
-			createImpact2(this.x,this.y+this.yv);
+			
 		}
 	}
 	//Collision with enemy
@@ -87,9 +91,12 @@ Ball.prototype.move = function() {
 			if (enemy.pushing) {
 				this.yv *= 1.5;
 				if (Math.abs(this.xv) > 4) this.evenY();
+				createImpact1(this.x,this.y+this.yv*2);
+			}
+			else {
+				createImpact1(this.x,this.y+this.yv);
 			}
 			this.onCollision();
-			createImpact1(this.x,this.y-this.yv);
 		}
 	}
 	//Collision with items

@@ -71,13 +71,17 @@ Ball.prototype.move = function() {
 		if (this.boundingBox.isColliding(player)) {
 			this.yv *= -1;
 			//Change ball angle based on position it hit the paddle? Not sure if want to use.
-			this.xv = 12 * ((this.x-(player.x+player.width/2))/player.width); 
+			//this.xv = 12 * ((this.x-(player.x+player.width/2))/player.width); 
 			if (player.pushing) {
 				this.yv *= 1.5;
 				if (Math.abs(this.xv) > 4) this.evenY();
+				createImpact2(this.x,this.y+this.yv*2);
+			}
+			else {
+				createImpact2(this.x,this.y+this.yv);
 			}
 			this.onCollision();
-			createImpact2(this.x,this.y+this.yv);
+			
 		}
 	}
 	//Collision with enemy
@@ -87,9 +91,12 @@ Ball.prototype.move = function() {
 			if (enemy.pushing) {
 				this.yv *= 1.5;
 				if (Math.abs(this.xv) > 4) this.evenY();
+				createImpact1(this.x,this.y+this.yv*2);
+			}
+			else {
+				createImpact1(this.x,this.y+this.yv);
 			}
 			this.onCollision();
-			createImpact1(this.x,this.y-this.yv);
 		}
 	}
 	//Collision with items
@@ -166,24 +173,17 @@ function Block(x,y,owner) {
 	this.y = y;
 	this.width = 50;
 	this.height = 20;
-	this.health = 10;
+	this.health = 3;
 	this.owner = owner;
 	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 }
 
 Block.prototype.draw = function() {
-	ctx.fillStyle = "#666";
+	ctx.fillStyle = "#F00"; //Error case
 	switch (this.health) {
-		case 10: ctx.fillStyle = "#999"; break;
-		case 9: ctx.fillStyle = "#888"; break;
-		case 8: ctx.fillStyle = "#777"; break;
-		case 7: ctx.fillStyle = "#666"; break;
-		case 6: ctx.fillStyle = "#555"; break;
-		case 5: ctx.fillStyle = "#444"; break;
-		case 4: ctx.fillStyle = "#333"; break;
-		case 3: ctx.fillStyle = "#222"; break;
-		case 2: ctx.fillStyle = "#111"; break;
-		case 1: ctx.fillStyle = "#010101"; break;
+		case 3: ctx.fillStyle = "#999"; break;
+		case 2: ctx.fillStyle = "#666"; break;
+		case 1: ctx.fillStyle = "#333"; break;
 		case 0: ctx.fillStyle = "#000"; break;
 	}
 	ctx.fillRect(this.x,this.y,this.width,this.height);
@@ -771,10 +771,10 @@ function draw() {
 		for (var i=0;i<entities.length;i++) {
 			entities[i].render();
 		}
-		//drawBalls();
+		drawBalls();
 		drawParticles();
-		//enemy.draw();
-		//player.draw();
+		enemy.draw();
+		player.draw();
 		drawItems();
 		drawFireworks();
 		drawBlocks();
@@ -858,18 +858,22 @@ function rightClick(e) {
  
 var items = [];
 
-function Item(x,y,width,height) {
+function Item() {
+	var x = Math.floor(Math.random() * canvas.width) - 30; //Subtract item width to prevent offscreen items
+	x = -30;
+	var y = 150 + (Math.floor(Math.random() * (200)));
 	this.x = x;
 	this.y = y;
 	this.xv = 0;
 	this.yv = 0;
-	this.width = width;
-	this.height = height;
+	this.width = 30;
+	this.height = 30;
 	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 	this.xv = 0;
 	this.yv = 0;
 	this.type = "";
 	this.pickedUp = false;
+	this.sin = -100;
 }
 
 Item.prototype.spawn = function() {
@@ -883,15 +887,12 @@ Item.prototype.draw = function() {
 	}
 };
 
-var t = 0;
 Item.prototype.update = function() {
 	this.x += 1;
-	t++;
-	if (t > 3) {
-		this.y += (Math.sin(this.x) * 150) / 100;
-		t = 0;
-	}
-	
+	this.sin++;
+
+	this.y += Math.sin(this.sin / 90) ;
+	if (this.sin > 100) this.sin = -100;
 	this.boundingBox.update(this.x,this.y);
 };
 
@@ -940,9 +941,7 @@ Level.prototype.update = function() {
 };
 
 Level.prototype.spawnItem = function() {
-	var x = Math.floor(Math.random() * canvas.width) - 30; //Subtract item width to prevent offscreen items
-	var y = 100 + (Math.floor(Math.random() * (canvas.height - 200)));
-	items.push(new Item(x,y,30,30));
+	items.push(new Item());
 };
 function Menu() {
 	this.options = [];
@@ -1093,22 +1092,22 @@ function ImpactParticle1(x,y) {
 	this.y = y;
 	this.coordinates = [];
 	this.coordinateCount = 5;
-	this.angle = random( 0, Math.PI * 2 );
-	this.speed = random( 0, 2 );
+	this.angle = random( 4, Math.PI * 4 );
+	this.speed = random( 2, 4 );
 	this.friction = 0.95;
 	while (this.coordinateCount--) {
 		this.coordinates.push([this.x,this.y]);
 	}
-	this.alpha = 90;
-	this.decay = 0.8;
+	this.alpha = 75;
+	this.decay = 0.6;
 }
 
 ImpactParticle1.prototype.update = function(index) {
 	this.coordinates.pop();
 	// add current coordinates to the start of the array
 	this.coordinates.unshift( [ this.x, this.y ] );
-	this.x += Math.cos( this.angle ) * this.speed * 2;
-	this.y += Math.sin( this.angle ) * this.speed * 0.5;
+	this.x += Math.cos( this.angle ) * this.speed * 1;
+	this.y += Math.abs(Math.sin( this.angle ) * this.speed * 0.5)*-1;
 
 	this.alpha *= this.decay;
 	if (this.alpha <= this.decay) {
@@ -1119,21 +1118,23 @@ ImpactParticle1.prototype.update = function(index) {
 ImpactParticle1.prototype.draw = function() {
 
 	for (var i=0;i<this.coordinates.length;i++) {
-		var alpha = (3 - i) * 0.12;
-		ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+		var alpha = i * 80;
+		ctx.fillStyle = "rgba("+222+","+222+","+222+","+alpha+")";
+		ctx.fillRect(this.coordinates[i][0],this.coordinates[i][1],1,1);
 	}
 	ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
-	ctx.beginPath();
+	ctx.strokeStyle = "rgba("+222+","+222+","+222+",150)";
+	//ctx.beginPath();
 	// move to the last tracked coordinates in the set, then draw a line to the current x and y
-	ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
-	ctx.lineTo( this.x, this.y );
-	ctx.stroke();
+	//ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
+	//ctx.lineTo( this.x, this.y );
+	//ctx.stroke();
 };
 
 
 //Impact 2 - Impact particles that fall up
 function createImpact2(x,y) {
-	var particleCount = 55;
+	var particleCount = 15;
 	while( particleCount-- ) {
 		particles.push( new ImpactParticle2( x, y ) );
 	}
@@ -1145,21 +1146,21 @@ function ImpactParticle2(x,y) {
 	this.coordinates = [];
 	this.coordinateCount = 5;
 	this.angle = random( 0, Math.PI * 2 );
-	this.speed = random( 0, 2 );
+	this.speed = random( 2, 4 );
 	this.friction = 0.95;
 	while (this.coordinateCount--) {
 		this.coordinates.push([this.x,this.y]);
 	}
-	this.alpha = 90;
-	this.decay = 0.8;
+	this.alpha = 75;
+	this.decay = 0.6;
 }
 
 ImpactParticle2.prototype.update = function(index) {
 	this.coordinates.pop();
 	// add current coordinates to the start of the array
 	this.coordinates.unshift( [ this.x, this.y ] );
-	this.x += Math.cos( this.angle ) * this.speed * 2;
-	this.y += Math.sin( this.angle ) * this.speed * 0.5;
+	this.x += Math.cos( this.angle ) * this.speed * 1;
+	this.y += Math.abs(Math.sin( this.angle ) * this.speed * 0.5)*-1;
 
 	this.alpha *= this.decay;
 	if (this.alpha <= this.decay) {
@@ -1170,16 +1171,17 @@ ImpactParticle2.prototype.update = function(index) {
 ImpactParticle2.prototype.draw = function() {
 
 	for (var i=0;i<this.coordinates.length;i++) {
-		var alpha = (3 - i) * 0.12;
-		ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+		var alpha = i * 80;
+		ctx.fillStyle = "rgba("+222+","+222+","+222+","+alpha+")";
+		ctx.fillRect(this.coordinates[i][0],this.coordinates[i][1],1,1);
 	}
 	ctx.strokeStyle = 'hsla(' + 12 + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
-	ctx.strokeStyle = "rgba("+222+","+222+","+222+",0)";
-	ctx.beginPath();
+	ctx.strokeStyle = "rgba("+222+","+222+","+222+",150)";
+	//ctx.beginPath();
 	// move to the last tracked coordinates in the set, then draw a line to the current x and y
-	ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
-	ctx.lineTo( this.x, this.y );
-	ctx.stroke();
+	//ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
+	//ctx.lineTo( this.x, this.y );
+	//ctx.stroke();
 };var player = new Player();
 function Player() {
 	this.score = 0;

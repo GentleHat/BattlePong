@@ -12,24 +12,17 @@ function Block(x,y,owner) {
 	this.y = y;
 	this.width = 50;
 	this.height = 20;
-	this.health = 10;
+	this.health = 3;
 	this.owner = owner;
 	this.boundingBox = new BoundingBox(this.x,this.y,this.width,this.height);
 }
 
 Block.prototype.draw = function() {
-	ctx.fillStyle = "#666";
+	ctx.fillStyle = "#F00"; //Error case
 	switch (this.health) {
-		case 10: ctx.fillStyle = "#999"; break;
-		case 9: ctx.fillStyle = "#888"; break;
-		case 8: ctx.fillStyle = "#777"; break;
-		case 7: ctx.fillStyle = "#666"; break;
-		case 6: ctx.fillStyle = "#555"; break;
-		case 5: ctx.fillStyle = "#444"; break;
-		case 4: ctx.fillStyle = "#333"; break;
-		case 3: ctx.fillStyle = "#222"; break;
-		case 2: ctx.fillStyle = "#111"; break;
-		case 1: ctx.fillStyle = "#010101"; break;
+		case 3: ctx.fillStyle = "#999"; break;
+		case 2: ctx.fillStyle = "#666"; break;
+		case 1: ctx.fillStyle = "#333"; break;
 		case 0: ctx.fillStyle = "#000"; break;
 	}
 	ctx.fillRect(this.x,this.y,this.width,this.height);

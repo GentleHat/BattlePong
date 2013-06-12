@@ -67,10 +67,10 @@ function draw() {
 		for (var i=0;i<entities.length;i++) {
 			entities[i].render();
 		}
-		//drawBalls();
+		drawBalls();
 		drawParticles();
-		//enemy.draw();
-		//player.draw();
+		enemy.draw();
+		player.draw();
 		drawItems();
 		drawFireworks();
 		drawBlocks();
