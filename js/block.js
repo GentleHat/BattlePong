@@ -35,11 +35,12 @@ Block.prototype.update = function() {
 };
 
 Block.prototype.damage = function() {
-	this.health -= 1;
+	this.health -= 15;
 	if (this.health <= 0) this.destroy();
 };
 
 Block.prototype.destroy = function() {
+	createBlockParticles(this.x,this.y);
 	for (var i = 0; i < blocks.length; i++)
 	{
 		if (blocks[i] === this) { 
